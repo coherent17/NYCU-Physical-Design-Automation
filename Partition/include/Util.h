@@ -4,6 +4,12 @@
 // 2-Way Partition
 #define NPARTS 2
 
+#define CONVERAGE_CRITERIA 50
+
+// Timing Control
+#define MAX_EXECUTION_TIME 30
+#define BUFFER_TIME 2
+
 // Check whether the cell is locked of not in FM process
 enum Lock_State{
     Not_Lock = 0,

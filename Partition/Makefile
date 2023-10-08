@@ -27,26 +27,31 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 check:
-	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) testcase/sample.dat
-
-do1:
-	time ./$(TARGET) testcase/input.hgr testcase/input.hgr.out
-	./verifier/verifier testcase/input.hgr testcase/input.hgr.out
-
-do2:
-	time ./$(TARGET) testcase/input2.txt.hgr testcase/input2.txt.hgr.out
-	./verifier/verifier testcase/input2.txt.hgr testcase/input2.txt.hgr.out
-
-do3:
-	time ./$(TARGET) testcase/input3.txt.hgr testcase/input3.txt.hgr.out
-	./verifier/verifier testcase/input3.txt.hgr testcase/input3.txt.hgr.out
-
-do4:
-	time ./$(TARGET) testcase/input4.hgr testcase/input4.hgr.out
-	./verifier/verifier testcase/input4.hgr testcase/input4.hgr.out
+	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) testcase/sample.dat testcase/sample.out
 
 s:
-	./$(TARGET) testcase/sample.dat
+	./$(TARGET) testcase/sample.dat	testcase/sample.out
+	./verifier/SolutionChecker testcase/sample.dat	testcase/sample.out
+
+do1:
+	time ./$(TARGET) testcase/input_1.dat testcase/input_1.out
+	./verifier/SolutionChecker testcase/input_1.dat testcase/input_1.out
+
+do2:
+	time ./$(TARGET) testcase/input_2.dat testcase/input_2.out
+	./verifier/SolutionChecker testcase/input_2.dat testcase/input_2.out
+
+do3:
+	time ./$(TARGET) testcase/input_3.dat testcase/input_3.out
+	./verifier/SolutionChecker testcase/input_3.dat testcase/input_3.out
+
+do4:
+	time ./$(TARGET) testcase/input_4.dat testcase/input_4.out
+	./verifier/SolutionChecker testcase/input_4.dat testcase/input_4.out
+
+do5:
+	time ./$(TARGET) testcase/input_5.dat testcase/input_5.out
+	./verifier/SolutionChecker testcase/input_5.dat testcase/input_5.out
 
 clean:
 	rm -rf $(OBJDIR) $(TARGET) testcase/*.out testcase/*.part.2
