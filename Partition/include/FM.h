@@ -21,7 +21,8 @@ class FM{
         vector<Net *> Net_Array;
         BucketList *BucketLists[NPARTS];
         int Partition_Size[NPARTS];
-        int Current_Best_Cut = INT_MAX;
+        int Current_Best_Cut;
+        int Current_Pass;
         vector<Partition_Side> Current_Best_Partition;
         chrono::steady_clock::time_point StartTime;
 

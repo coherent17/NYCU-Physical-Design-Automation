@@ -4,10 +4,10 @@
 // 2-Way Partition
 #define NPARTS 2
 
-#define CONVERAGE_CRITERIA 50
+#define CONVERAGE_CRITERIA 20
 
 // Timing Control
-#define MAX_EXECUTION_TIME 30
+#define MAX_EXECUTION_TIME 3600
 #define BUFFER_TIME 2
 
 // Check whether the cell is locked of not in FM process

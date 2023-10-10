@@ -7,7 +7,8 @@ FM::FM():
     Balanced_Factor(0),
     Lower_Partition_Bound(0),
     Higher_Partition_Bound(0),
-    Current_Best_Cut(INT_MAX)
+    Current_Best_Cut(INT_MAX),
+    Current_Pass(0)
 {
     Partition_Size[Left] = 0;
     Partition_Size[Right] = 0;
@@ -84,17 +85,29 @@ void FM::Parser(ifstream &fin){
 }
 
 void FM::Dump(ofstream &fout){
-    fout << "Cutsize = " << Get_Cut() << endl;
-    fout << "G1 " << Partition_Size[Left] << endl;
-    for(int i = 0; i < Num_Cells; i++){
-        if(Cell_Array[i]->Get_Side() == Left){
+    fout << "Cutsize = " << Current_Best_Cut << endl;
+    int Best_Left_Partition_Size = 0;
+    int Best_Right_Partition_Size = 0;
+
+    for(size_t i = 0; i < Current_Best_Partition.size(); i++){
+        if(Current_Best_Partition[i] == Left){
+            Best_Left_Partition_Size++;
+        }
+        else{
+            Best_Right_Partition_Size++;
+        }
+    }
+
+    fout << "G1 " << Best_Left_Partition_Size << endl;
+    for(size_t i = 0; i < Current_Best_Partition.size(); i++){
+        if(Current_Best_Partition[i] == Left){
             fout << Cell_Array[i]->Get_Cell_Name() << " ";
         }
     }
     fout << ";" << endl;
-    fout << "G2 " << Partition_Size[Right] << endl;
-    for(int i = 0; i < Num_Cells; i++){
-        if(Cell_Array[i]->Get_Side() == Right){
+    fout << "G2 " << Best_Right_Partition_Size << endl;
+    for(size_t i = 0; i < Current_Best_Partition.size(); i++){
+        if(Current_Best_Partition[i] == Right){
             fout << Cell_Array[i]->Get_Cell_Name() << " ";
         }
     }
@@ -124,6 +137,7 @@ void FM::Run(){
         int Right_Gain_Boundary = dist(gen);
         while(BucketLists[Left]->Get_Current_Max_Gain() >= Left_Gain_Boundary || BucketLists[Right]->Get_Current_Max_Gain() >= Right_Gain_Boundary){
             Base_Cell = Find_Base_Cell();
+            assert(Base_Cell != nullptr);
             Side = Base_Cell->Get_Side();
             Base_Cell->Set_State(Lock);
             BucketLists[Side]->Delete_Node(Base_Cell->Get_Node());
@@ -133,6 +147,7 @@ void FM::Run(){
         Pass++;
         int cut = Get_Cut();
         if(cut < Current_Best_Cut){
+            Current_Pass = Pass;
             Best_Cut_Repeat = 0;
             Current_Best_Cut = cut;
             for(int i = 0; i < Num_Cells; i++){
@@ -140,10 +155,11 @@ void FM::Run(){
             }
         }
         if(cut == Current_Best_Cut) Best_Cut_Repeat++;
-        cout << "[FM(" << Pass << ")]Cut Size: " << cut << ", Current Best Cut: " << Current_Best_Cut << ", Repeat for: " << Best_Cut_Repeat << endl;
+        cout << "[FM(" << Pass << ")]Cut Size: " << cut << ", Current Best Cut: " << Current_Best_Cut << ", Repeat for: " << Best_Cut_Repeat << ", Not Change for: " << Pass - Current_Pass << endl;
         auto EndTime = chrono::steady_clock::now();
         ElapsedTimeSeconds = chrono::duration_cast<chrono::seconds>(EndTime - StartTime).count();
         if(ElapsedTimeSeconds > MAX_EXECUTION_TIME - BUFFER_TIME) break;
+        if(Pass - Current_Pass > 500) break;
     }while(Best_Cut_Repeat <= CONVERAGE_CRITERIA);
 }
 
@@ -170,20 +186,9 @@ void FM::Initialize_Partition(){
         }
     }
 
-    // Init Partition Summary
     cout << endl;
     cout << "==================== Init Partition Summary ====================" << endl;
     cout << "Left: " << Partition_Size[Left] << ", Right: " << Partition_Size[Right] << endl;
-    // for(int i = 0; i < Num_Cells; i++){
-    //     cout << Cell_Array[i]->Get_Cell_Name() << ": " << Cell_Array[i]->Get_Side() << endl;
-    // }
-    // cout << endl;
-
-    // cout << "Net Info" << endl;
-    // for(int i = 0; i < Num_Nets; i++){
-    //     cout << Net_Array[i]->Get_Net_Name() << ": " << Net_Array[i]->Get_Partition_Size(Left) << "/" << Net_Array[i]->Get_Partition_Size(Right) << endl;
-    // }
-    // cout << endl;
 }
 
 void FM::Construct_BucketList(){
@@ -194,7 +199,7 @@ void FM::Construct_BucketList(){
 
     //allocate for the bucketlist
     BucketLists[Left] = new BucketList(Max_Degree);
-    BucketLists[Right] = new BucketList(Max_Degree);\
+    BucketLists[Right] = new BucketList(Max_Degree);
 
     for(int i = 0; i < Num_Cells; i++){
         int gain = 0;
@@ -202,9 +207,7 @@ void FM::Construct_BucketList(){
         Partition_Side Other_Side = static_cast<Partition_Side>(1 - static_cast<int>(Cell_Side));
         for(size_t j = 0; j < Cell_Array[i]->Get_Net_List_Size(); j++){
             Net *net = Cell_Array[i]->Get_Net(j);
-            if(net == nullptr){
-                cout << "null detect!!" << endl;
-            }
+            assert(net != nullptr);
             if(net->Get_Partition_Size(Cell_Side) == 1){
                 //FS
                 gain++;
@@ -233,6 +236,10 @@ Cell *FM::Find_Base_Cell(){
         return Left_Max_Gain_Node->cell;
     }
 
+    if(Left_Max_Gain_Node == nullptr && Right_Max_Gain_Node == nullptr){
+        return nullptr;
+    }
+
     if(Left_Max_Gain_Node == nullptr){
         return Right_Max_Gain_Node->cell;
     }
@@ -242,14 +249,14 @@ Cell *FM::Find_Base_Cell(){
 
     assert(Left_Max_Gain_Node != nullptr && Right_Max_Gain_Node != nullptr);
     // Get the node that has larger gain
-    if(BucketLists[Left]->Get_Max_Gain_Node()->cell->Get_Gain() == BucketLists[Right]->Get_Max_Gain_Node()->cell->Get_Gain()){
-        return BucketLists[Left]->Get_Max_Gain_Node()->cell->Get_Cell_Name() < BucketLists[Right]->Get_Max_Gain_Node()->cell->Get_Cell_Name() ? BucketLists[Left]->Get_Max_Gain_Node()->cell : BucketLists[Right]->Get_Max_Gain_Node()->cell;
+    if(Left_Max_Gain_Node->cell->Get_Gain() == Right_Max_Gain_Node->cell->Get_Gain()){
+        return Left_Max_Gain_Node->cell->Get_Cell_Name() < Right_Max_Gain_Node->cell->Get_Cell_Name() ? Left_Max_Gain_Node->cell : Right_Max_Gain_Node->cell;
     }
-    else if(BucketLists[Left]->Get_Max_Gain_Node()->cell->Get_Gain() < BucketLists[Right]->Get_Max_Gain_Node()->cell->Get_Gain()){
-        return BucketLists[Right]->Get_Max_Gain_Node()->cell;
+    else if(Left_Max_Gain_Node->cell->Get_Gain() < Right_Max_Gain_Node->cell->Get_Gain()){
+        return Right_Max_Gain_Node->cell;
     }
     else{
-        return BucketLists[Left]->Get_Max_Gain_Node()->cell;
+        return Left_Max_Gain_Node->cell;
     }
 }
 

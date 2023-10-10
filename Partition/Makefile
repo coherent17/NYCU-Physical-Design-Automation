@@ -13,7 +13,7 @@ SRCS = $(wildcard $(SRCDIR)/*.cpp)
 OBJS = $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRCS))
 
 # Name of the executable
-TARGET = main
+TARGET = Lab1
 
 all: $(TARGET)
 
@@ -53,5 +53,8 @@ do5:
 	time ./$(TARGET) testcase/input_5.dat testcase/input_5.out
 	./verifier/SolutionChecker testcase/input_5.dat testcase/input_5.out
 
+runall:
+	perl run_case.pl
+
 clean:
-	rm -rf $(OBJDIR) $(TARGET) testcase/*.out testcase/*.part.2
+	rm -rf $(OBJDIR) $(TARGET)
