@@ -1,6 +1,6 @@
 # ompiler & Linker settings
 CC = g++
-CFLAGS = -g -Wall -O3 -I./include
+CFLAGS = -g -Wall -O3 -DNDEBUG -I./include
 
 # Valgrind for memory issue
 CHECKCC = valgrind
@@ -29,9 +29,13 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 check:
 	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) testcase/sample.dat testcase/sample.out
 
-s:
-	./$(TARGET) testcase/sample.dat	testcase/sample.out
-	./verifier/SolutionChecker testcase/sample.dat	testcase/sample.out
+s1:
+	time ./$(TARGET) testcase/sample1.dat testcase/sample1.out
+	./verifier/SolutionChecker testcase/sample1.dat	testcase/sample1.out
+
+s2:
+	time ./$(TARGET) testcase/sample2.dat testcase/sample2.out
+	./verifier/SolutionChecker testcase/sample2.dat	testcase/sample2.out
 
 do1:
 	time ./$(TARGET) testcase/input_1.dat testcase/input_1.out
@@ -57,4 +61,4 @@ runall:
 	perl run_case.pl
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET)
+	rm -rf $(OBJDIR) $(TARGET) testcase/*.out log report*

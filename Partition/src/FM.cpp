@@ -42,17 +42,32 @@ void FM::Parser(ifstream &fin){
         string _, Net_Name;
         ss >> _ >> Net_Name;
         Net *net = new Net(Net_Name);
-        while(ss){
-            string Cell_Name;
-            ss >> Cell_Name;
-            if(Cell_Name == ";") break;
+        bool Finish_Read_Net = false;
+        while(!Finish_Read_Net){
+            while(ss){
+                string Cell_Name;
+                ss >> Cell_Name;
+                if(Cell_Name == ""){
+                    continue;
+                }
+                if(Cell_Name == ";"){
+                    Finish_Read_Net = true;
+                    break;
+                }
 
-            // Check if the Cell exists in the Cell_Map
-            if (Cell_Map.find(Cell_Name) == Cell_Map.end()) {
-                Cell_Map[Cell_Name] = new Cell(Cell_Name);
+                // Check if the Cell exists in the Cell_Map
+                if (Cell_Map.find(Cell_Name) == Cell_Map.end()) {
+                    Cell_Map[Cell_Name] = new Cell(Cell_Name);
+                }
+                Cell_Map[Cell_Name]->Add_Net(net);
+                net->Add_Cell(Cell_Map[Cell_Name]);
             }
-            Cell_Map[Cell_Name]->Add_Net(net);
-            net->Add_Cell(Cell_Map[Cell_Name]);
+            if(Finish_Read_Net == false){
+                getline(fin, line);
+                ss.str("");
+                ss.clear();
+                ss << line;
+            }
         }
         Net_Array.emplace_back(net);
     }
@@ -75,13 +90,14 @@ void FM::Parser(ifstream &fin){
     Higher_Partition_Bound = (1 + Balanced_Factor) * Num_Cells / 2.0;
 
     // Parser Summary
-    cout << endl;
-    cout << "==================== Parser Summary ====================" << endl;
-    cout << "Num Cell: " << Num_Cells << endl;
-    cout << "Num Net: " << Num_Nets << endl;
-    cout << "Max Degree: " << Max_Degree << endl;
-    cout << "Lower Bound: " << Lower_Partition_Bound << endl;
-    cout << "Higher Bound: " << Higher_Partition_Bound << endl;
+    if(SHOW_LOG){
+        cout << endl << "==================== Parser Summary ====================" << endl;
+        cout << "Num Cell: " << Num_Cells << endl;
+        cout << "Num Net: " << Num_Nets << endl;
+        cout << "Max Degree: " << Max_Degree << endl;
+        cout << "Lower Bound: " << Lower_Partition_Bound << endl;
+        cout << "Higher Bound: " << Higher_Partition_Bound << endl;
+    }
 }
 
 void FM::Dump(ofstream &fout){
@@ -122,7 +138,8 @@ void FM::Run(){
 
     Initialize_Partition();
     Construct_BucketList();
-    cout << "Initial State: " << Get_Cut() << endl;
+    if(SHOW_LOG)
+        cout << "Initial State: " << Get_Cut() << endl;
 
     Cell *Base_Cell;
     Partition_Side Side;
@@ -135,6 +152,10 @@ void FM::Run(){
         Construct_BucketList();
         int Left_Gain_Boundary = dist(gen);
         int Right_Gain_Boundary = dist(gen);
+        if(Pass - Current_Pass < LOCAL_SEARCH_TIME || Current_Best_Cut * 2 < Get_Cut()){
+            Left_Gain_Boundary = 0;
+            Right_Gain_Boundary = 0;
+        }
         while(BucketLists[Left]->Get_Current_Max_Gain() >= Left_Gain_Boundary || BucketLists[Right]->Get_Current_Max_Gain() >= Right_Gain_Boundary){
             Base_Cell = Find_Base_Cell();
             assert(Base_Cell != nullptr);
@@ -155,11 +176,13 @@ void FM::Run(){
             }
         }
         if(cut == Current_Best_Cut) Best_Cut_Repeat++;
-        cout << "[FM(" << Pass << ")]Cut Size: " << cut << ", Current Best Cut: " << Current_Best_Cut << ", Repeat for: " << Best_Cut_Repeat << ", Not Change for: " << Pass - Current_Pass << endl;
+        if(SHOW_LOG){
+            cout << "[FM(" << Pass << ")]Cut Size: " << cut << ", Current Best Cut: " << Current_Best_Cut << ", Repeat for: " << Best_Cut_Repeat << ", Not Change for: " << Pass - Current_Pass << endl;
+        }
         auto EndTime = chrono::steady_clock::now();
         ElapsedTimeSeconds = chrono::duration_cast<chrono::seconds>(EndTime - StartTime).count();
         if(ElapsedTimeSeconds > MAX_EXECUTION_TIME - BUFFER_TIME) break;
-        if(Pass - Current_Pass > 500) break;
+        if(Pass - Current_Pass > MAX_USELESS_FM_COUNT) break;
     }while(Best_Cut_Repeat <= CONVERAGE_CRITERIA);
 }
 
@@ -186,9 +209,10 @@ void FM::Initialize_Partition(){
         }
     }
 
-    cout << endl;
-    cout << "==================== Init Partition Summary ====================" << endl;
-    cout << "Left: " << Partition_Size[Left] << ", Right: " << Partition_Size[Right] << endl;
+    if(SHOW_LOG){
+        cout << endl << "==================== Init Partition Summary ====================" << endl;
+        cout << "Left: " << Partition_Size[Left] << ", Right: " << Partition_Size[Right] << endl;
+    }
 }
 
 void FM::Construct_BucketList(){
@@ -260,24 +284,28 @@ Cell *FM::Find_Base_Cell(){
     }
 }
 
+/*
 
-// Algorithm: Update_Gain
-// 1 begin /* move base cell and update neighbors' gains */ 
-// 2 F : the Front Block of the base cell; 
-// 3 T : the To Block of the base cell; 
-// 4 Lock the base cell and complement its block;
-// 5 for each net n on the base cell do 
-// /* check critical nets before the move */
-// 6 if T(n) = 0 then increment gains of all free cells on n
-// else if T(n)=1 then decrement gain of the only T cell on n,
-// if it is free
-// /* change F(n) and T(n) to reflect the move */
-// 7 F(n) =  F(n) - 1; T(n) = T(n)+1; 
-// /* check for critical nets after the move */ 
-// 8 if F(n)=0 then decrement gains of all free cells on n
-// else if F(n) = 1 then increment gain of the only F cell on n,
-// if it is free
-// 9 end
+Algorithm: Update_Gain
+begin [move base cell and update neighbors' gains]
+F <- the Front Block of the base cell; 
+T <- the To Block of the base cell; 
+Lock the base cell and complement its block;
+for each net n on the base cell do 
+
+    if T(n) = 0 then increment gains of all free cells on n
+    else if T(n)=1 then decrement gain of the only T cell on n, if it is free
+
+    // update F and T to reflect the move
+    F(n) =  F(n) - 1; T(n) = T(n)+1; 
+
+    if F(n)=0 then decrement gains of all free cells on n
+    else if F(n) = 1 then increment gain of the only F cell on n,
+    if it is free
+end
+
+*/
+
 void FM::Update_Neighbor_Gain(Cell *Base_Cell){
     Partition_Side Cell_Side = Base_Cell->Get_Side();
     Partition_Side Other_Side = static_cast<Partition_Side>(1 - static_cast<int>(Cell_Side));
@@ -287,23 +315,33 @@ void FM::Update_Neighbor_Gain(Cell *Base_Cell){
         Net *net = Base_Cell->Get_Net(i);
         int F_net = net->Get_Partition_Size(Cell_Side);
         int T_net = net->Get_Partition_Size(Other_Side);
+
+        Cell *cell;
+        int cell_gain;
+        Node *cell_node_in_bucketlist;
+
+
         if(T_net == 0){
             for(size_t j = 0; j < net->Get_Cell_List_Size(); j++){
-                Cell *cell = net->Get_Cell(j);
+                cell = net->Get_Cell(j);
+                cell_gain = cell->Get_Gain() + 1;
+                cell_node_in_bucketlist = cell->Get_Node();
                 if(cell->Get_State() != Lock){
-                    cell->Set_Gain(cell->Get_Gain() + 1);
-                    BucketLists[Cell_Side]->Delete_Node(cell->Get_Node());
-                    BucketLists[Cell_Side]->Insert_Node(cell->Get_Node(), cell->Get_Gain());
+                    cell->Set_Gain(cell_gain);
+                    BucketLists[Cell_Side]->Delete_Node(cell_node_in_bucketlist);
+                    BucketLists[Cell_Side]->Insert_Node(cell_node_in_bucketlist, cell_gain);
                 }
             }
         }
         else if(T_net == 1){
             for(size_t j = 0; j < net->Get_Cell_List_Size(); j++){
-                Cell *cell = net->Get_Cell(j);
+                cell = net->Get_Cell(j);
+                cell_gain = cell->Get_Gain() - 1;
+                cell_node_in_bucketlist = cell->Get_Node();
                 if(cell->Get_State() != Lock && cell->Get_Side() == Other_Side){
-                    cell->Set_Gain(cell->Get_Gain() - 1);
-                    BucketLists[Other_Side]->Delete_Node(cell->Get_Node());
-                    BucketLists[Other_Side]->Insert_Node(cell->Get_Node(), cell->Get_Gain());
+                    cell->Set_Gain(cell_gain);
+                    BucketLists[Other_Side]->Delete_Node(cell_node_in_bucketlist);
+                    BucketLists[Other_Side]->Insert_Node(cell_node_in_bucketlist, cell_gain);
                     break;
                 }
             }
@@ -314,21 +352,25 @@ void FM::Update_Neighbor_Gain(Cell *Base_Cell){
         
         if(F_net == 0){
             for(size_t j = 0; j < net->Get_Cell_List_Size(); j++){
-                Cell *cell = net->Get_Cell(j);
+                cell = net->Get_Cell(j);
+                cell_gain = cell->Get_Gain() - 1;
+                cell_node_in_bucketlist = cell->Get_Node();
                 if(cell->Get_State() != Lock){
-                    cell->Set_Gain(cell->Get_Gain() - 1);
-                    BucketLists[Other_Side]->Delete_Node(cell->Get_Node());
-                    BucketLists[Other_Side]->Insert_Node(cell->Get_Node(), cell->Get_Gain());
+                    cell->Set_Gain(cell_gain);
+                    BucketLists[Other_Side]->Delete_Node(cell_node_in_bucketlist);
+                    BucketLists[Other_Side]->Insert_Node(cell_node_in_bucketlist, cell_gain);
                 }
             }
         }
         else if(F_net == 1){
             for(size_t j = 0; j < net->Get_Cell_List_Size(); j++){
-                Cell *cell = net->Get_Cell(j);
+                cell = net->Get_Cell(j);
+                cell_gain = cell->Get_Gain() + 1;
+                cell_node_in_bucketlist = cell->Get_Node();
                 if(cell->Get_State() != Lock && cell->Get_Side() == Cell_Side){
-                    cell->Set_Gain(cell->Get_Gain() + 1);
-                    BucketLists[Cell_Side]->Delete_Node(cell->Get_Node());
-                    BucketLists[Cell_Side]->Insert_Node(cell->Get_Node(), cell->Get_Gain());
+                    cell->Set_Gain(cell_gain);
+                    BucketLists[Cell_Side]->Delete_Node(cell_node_in_bucketlist);
+                    BucketLists[Cell_Side]->Insert_Node(cell_node_in_bucketlist, cell_gain);
                     break;
                 }
             }

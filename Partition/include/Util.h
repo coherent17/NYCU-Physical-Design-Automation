@@ -1,14 +1,22 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+// show log
+#define SHOW_LOG 0
+
 // 2-Way Partition
 #define NPARTS 2
 
+// FM terminate condition
 #define CONVERAGE_CRITERIA 20
+#define MAX_USELESS_FM_COUNT 50
+
+// Local Search times when finiding better solution
+#define LOCAL_SEARCH_TIME 5
 
 // Timing Control
 #define MAX_EXECUTION_TIME 3600
-#define BUFFER_TIME 2
+#define BUFFER_TIME 5
 
 // Check whether the cell is locked of not in FM process
 enum Lock_State{
