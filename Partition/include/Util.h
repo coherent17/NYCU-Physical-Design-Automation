@@ -2,17 +2,18 @@
 #define _UTIL_H_
 
 // show log
-#define SHOW_LOG 0
+#define SHOW_LOG 1
+#define PRINT_DETAIL 0
 
 // 2-Way Partition
 #define NPARTS 2
 
 // FM terminate condition
 #define CONVERAGE_CRITERIA 20
-#define MAX_USELESS_FM_COUNT 50
+#define MAX_USELESS_FM_COUNT 100
 
 // Local Search times when finiding better solution
-#define LOCAL_SEARCH_TIME 5
+#define LOCAL_SEARCH_TIME 3
 
 // Timing Control
 #define MAX_EXECUTION_TIME 3600

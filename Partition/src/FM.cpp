@@ -28,55 +28,37 @@ FM::~FM(){
 
 void FM::Parser(ifstream &fin){
     // Parse Balanced Factor
-    string line;
-    getline(fin, line);
-    stringstream s(line);
-    s >> Balanced_Factor;
+    fin >> Balanced_Factor;
 
-    // Construct Net Array
+    // Parse hyperedge net
     // A hash table map cell name to the pointer to the cell object
     unordered_map<string, Cell *> Cell_Map;
-    while(getline(fin, line)){
-        // NET <Net Name> [<Cell Name>]+ ;
-        stringstream ss(line);
-        string _, Net_Name;
-        ss >> _ >> Net_Name;
-        Net *net = new Net(Net_Name);
-        bool Finish_Read_Net = false;
-        while(!Finish_Read_Net){
-            while(ss){
-                string Cell_Name;
-                ss >> Cell_Name;
-                if(Cell_Name == ""){
-                    continue;
-                }
-                if(Cell_Name == ";"){
-                    Finish_Read_Net = true;
-                    break;
-                }
-
+    while(fin){
+        string literal;
+        fin >> literal;
+        if(literal == "NET"){
+            string Net_Name;
+            fin >> Net_Name;
+            Net *net = new Net(Net_Name);
+            while(fin >> literal &&  literal != ";"){
                 // Check if the Cell exists in the Cell_Map
+                string Cell_Name = literal;
                 if (Cell_Map.find(Cell_Name) == Cell_Map.end()) {
                     Cell_Map[Cell_Name] = new Cell(Cell_Name);
                 }
                 Cell_Map[Cell_Name]->Add_Net(net);
                 net->Add_Cell(Cell_Map[Cell_Name]);
             }
-            if(Finish_Read_Net == false){
-                getline(fin, line);
-                ss.str("");
-                ss.clear();
-                ss << line;
-            }
+            Net_Array.emplace_back(net);
         }
-        Net_Array.emplace_back(net);
     }
+    fin.close();
+
 
     // Construct Cell Array
     for(const auto& pair : Cell_Map){
         Cell_Array.emplace_back(pair.second);
     }
-    fin.close();
 
     Num_Cells = Cell_Array.size();
     Num_Nets = Net_Array.size();
@@ -97,6 +79,18 @@ void FM::Parser(ifstream &fin){
         cout << "Max Degree: " << Max_Degree << endl;
         cout << "Lower Bound: " << Lower_Partition_Bound << endl;
         cout << "Higher Bound: " << Higher_Partition_Bound << endl;
+
+        if(PRINT_DETAIL){
+            cout << "Cell Array: " << endl;
+            for(size_t i = 0; i < Cell_Array.size(); i++){
+                cout << *Cell_Array[i] << endl;
+            }
+
+            cout << "Net Array: " << endl;
+            for(size_t i = 0; i < Net_Array.size(); i++){
+                cout << *Net_Array[i] << endl;
+            }
+        }
     }
 }
 
@@ -406,7 +400,7 @@ void FM::Unlock_Cell_State(){
 int FM::Get_Cut()const{
     int cut = 0;
     for(int i = 0; i < Num_Nets; i++){
-        if(Net_Array[i]->Get_Partition_Size(Left) && Net_Array[i]->Get_Partition_Size(Right)){
+        if(Net_Array[i]->Get_Partition_Size(Left) > 0 && Net_Array[i]->Get_Partition_Size(Right) > 0){
             cut++;
         }
     }

@@ -63,9 +63,9 @@ size_t Cell::Get_Net_List_Size()const{
 
 // Print cell
 ostream &operator<<(ostream &out, const Cell &C){
-    out << C.Cell_Name;
-    // for(size_t i = 0; i < C.Net_List.size(); i++){
-    //     out << "\t" << C.Net_List[i]->Get_Net_Name() << endl;
-    // }
+    out << C.Cell_Name << endl;
+    for(size_t i = 0; i < C.Net_List.size(); i++){
+        out << "\t" << C.Net_List[i]->Get_Net_Name() << endl;
+    }
     return out;
 }

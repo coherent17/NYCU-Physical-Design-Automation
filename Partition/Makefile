@@ -37,6 +37,14 @@ s2:
 	time ./$(TARGET) testcase/sample2.dat testcase/sample2.out
 	./verifier/SolutionChecker testcase/sample2.dat	testcase/sample2.out
 
+s3:
+	time ./$(TARGET) testcase/sample3.dat testcase/sample3.out
+	./verifier/SolutionChecker testcase/sample3.dat	testcase/sample3.out
+
+do0:
+	time ./$(TARGET) testcase/input_0.dat testcase/input_0.out
+	./verifier/SolutionChecker testcase/input_0.dat testcase/input_0.out
+
 do1:
 	time ./$(TARGET) testcase/input_1.dat testcase/input_1.out
 	./verifier/SolutionChecker testcase/input_1.dat testcase/input_1.out
