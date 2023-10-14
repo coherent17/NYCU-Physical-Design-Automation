@@ -1,0 +1,56 @@
+Test Case Report:
+
+Test Case: sample1
+Execution Time: 0 seconds
+Log File: log/sample1.log
+Verifier Log File: log/sample1_verifier.log
+Timing Log File: log/sample1_timing.log
+
+Test Case: sample2
+Execution Time: 100 seconds
+Log File: log/sample2.log
+Verifier Log File: log/sample2_verifier.log
+Timing Log File: log/sample2_timing.log
+
+Test Case: sample3
+Execution Time: 0 seconds
+Log File: log/sample3.log
+Verifier Log File: log/sample3_verifier.log
+Timing Log File: log/sample3_timing.log
+
+Test Case: input_0
+Execution Time: 24 seconds
+Log File: log/input_0.log
+Verifier Log File: log/input_0_verifier.log
+Timing Log File: log/input_0_timing.log
+
+Test Case: input_1
+Execution Time: 0 seconds
+Log File: log/input_1.log
+Verifier Log File: log/input_1_verifier.log
+Timing Log File: log/input_1_timing.log
+
+Test Case: input_2
+Execution Time: 1 seconds
+Log File: log/input_2.log
+Verifier Log File: log/input_2_verifier.log
+Timing Log File: log/input_2_timing.log
+
+Test Case: input_3
+Execution Time: 21 seconds
+Log File: log/input_3.log
+Verifier Log File: log/input_3_verifier.log
+Timing Log File: log/input_3_timing.log
+
+Test Case: input_4
+Execution Time: 95 seconds
+Log File: log/input_4.log
+Verifier Log File: log/input_4_verifier.log
+Timing Log File: log/input_4_timing.log
+
+Test Case: input_5
+Execution Time: 470 seconds
+Log File: log/input_5.log
+Verifier Log File: log/input_5_verifier.log
+Timing Log File: log/input_5_timing.log
+

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 # List of test cases
-my @test_cases = ( "sample1", "sample2", "sample3", "input_1", "input_2", "input_3", "input_4", "input_5" );
+my @test_cases = ( "sample1", "sample2", "sample3", "input_0", "input_1", "input_2", "input_3", "input_4", "input_5" );
 
 # Executable name
 my $target = "./Lab1";
