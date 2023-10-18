@@ -156,6 +156,10 @@ void FM::Run(){
     }while(Best_Cut_Repeat <= CONVERAGE_CRITERIA);
 }
 
+int FM::Get_Best_Cut()const{
+    return Best_Cut;
+}
+
 void FM::Initialize_Partition(){
     for(size_t i = 0; i < (size_t)Lower_Bound + 1; i++){
         Cell_Array[i]->Side = Left;

@@ -35,7 +35,8 @@ class FM{
 
         // Main algorithm
         void Run();
-        int Get_Cut()const;
+        int Get_Best_Cut()const;
+        
 
     private:
         void Initialize_Partition();
@@ -44,6 +45,7 @@ class FM{
         void Update_Neighbor_Gain(Cell *);
         void Update_Base_Cell(Cell *);
         void Unlock_Cells();
+        int Get_Cut()const;
 };
 
 #endif
