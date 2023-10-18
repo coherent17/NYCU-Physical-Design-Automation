@@ -2,6 +2,7 @@
 #define _FM_H_
 
 #include <bits/stdc++.h>
+#include <chrono>
 #include "Circuit.h"
 #include "BucketList.h"
 using namespace std;
@@ -18,6 +19,10 @@ class FM{
         vector<Net *> Net_Array;
         BucketList *BucketLists[NPARTS];
         size_t Partition_Size[NPARTS];
+        int Best_Cut;
+        int Best_Cut_Pass;
+        vector<Partition_Side> Best_Partition;
+        chrono::steady_clock::time_point StartTime;
 
     public:
         // Constructor & Destructor
@@ -30,6 +35,7 @@ class FM{
 
         // Main algorithm
         void Run();
+        int Get_Cut()const;
 
     private:
         void Initialize_Partition();
@@ -38,7 +44,6 @@ class FM{
         void Update_Neighbor_Gain(Cell *);
         void Update_Base_Cell(Cell *);
         void Unlock_Cells();
-        int Get_Cut()const;
 };
 
 #endif

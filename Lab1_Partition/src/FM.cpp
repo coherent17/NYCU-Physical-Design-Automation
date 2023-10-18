@@ -6,13 +6,18 @@ FM::FM():
     Max_Degree(0),
     Balanced_Factor(0),
     Lower_Bound(0),
-    Higher_Bound(0)
+    Higher_Bound(0),
+    Best_Cut(INT_MAX),
+    Best_Cut_Pass(0)
 {
-    ;
+    Partition_Size[Left] = 0;
+    Partition_Size[Right] = 0;
+    BucketLists[Left] = nullptr;
+    BucketLists[Right] = nullptr;
+    StartTime = chrono::steady_clock::now();
 }
 
 FM::~FM(){
-
     for(auto &cell : Cell_Array){
         delete cell;
     }
@@ -48,7 +53,6 @@ void FM::Parser(ifstream &fin){
             Net_Array.emplace_back(net);
         }
     }
-    fin.close();
 
     // Construct Cell Array
     for(const auto& pair : Cell_Map){
@@ -57,11 +61,12 @@ void FM::Parser(ifstream &fin){
 
     Num_Cells = Cell_Array.size();
     Num_Nets = Net_Array.size();
+    Best_Partition.resize(Num_Cells, Left);
 
     // Find Max Degree
     for(size_t i = 0; i < Num_Cells; i++){
         size_t Cell_Degree = Cell_Array[i]->Nets.size();
-        Max_Degree = Max_Degree > Cell_Degree ? Max_Degree : Cell_Degree;
+        Max_Degree = (Max_Degree > Cell_Degree) ? Max_Degree : Cell_Degree;
     }
 
     // Calculate partition bound
@@ -70,19 +75,30 @@ void FM::Parser(ifstream &fin){
 }
 
 void FM::Dump(ofstream &fout){
-    fout << "Cutsize = " << Get_Cut() << endl;
+    fout << "Cutsize = " << Best_Cut << endl;
+    int Left_Partition_Size = 0;
+    int Right_Partition_Size = 0;
 
-    fout << "G1 " << Partition_Size[Left] << endl;
-    for(const auto &cell : Cell_Array){
-        if(cell->Side == Left){
-            fout << cell->Name << " ";
+    for(size_t i = 0; i < Best_Partition.size(); i++){
+        if(Best_Partition[i] == Left){
+           Left_Partition_Size++;
+        }
+        else{
+            Right_Partition_Size++;
+        }
+    }
+
+    fout << "G1 " << Left_Partition_Size << endl;
+    for(size_t i = 0; i < Best_Partition.size(); i++){
+        if(Best_Partition[i] == Left){
+            fout << Cell_Array[i]->Name << " ";
         }
     }
     fout << ";" << endl;
-    fout << "G2 " << Partition_Size[Right] << endl;
-    for(const auto &cell : Cell_Array){
-        if(cell->Side == Right){
-            fout << cell->Name << " ";
+    fout << "G2 " << Right_Partition_Size << endl;
+    for(size_t i = 0; i < Best_Partition.size(); i++){
+        if(Best_Partition[i] == Right){
+            fout << Cell_Array[i]->Name << " ";
         }
     }
     fout << ";" << endl;
@@ -90,21 +106,54 @@ void FM::Dump(ofstream &fout){
 }
 
 void FM::Run(){
-    Initialize_Partition();
-    cout << "Init: " << Get_Cut() << endl;
+    // For random number selector
+    random_device rd; 
+    mt19937 gen(rd());
+    uniform_int_distribution<int> dist(-1, 0);
 
+    Initialize_Partition();
     Construct_BucketList();
-    Unlock_Cells();
-    while(BucketLists[Left]->Current_Max_Gain >= 1 || BucketLists[Right]->Current_Max_Gain >= 1){
-        Cell *Base_Cell = Find_Base_Cell();
-        //cout << *Base_Cell << endl;
-        Base_Cell->State = Lock;
-        BucketLists[Base_Cell->Side]->Delete(Base_Cell);
-        Update_Neighbor_Gain(Base_Cell);
-        Update_Base_Cell(Base_Cell);
-        cout << Get_Cut() << endl;
-    }
-    cout << Get_Cut() << endl;
+    if(SHOW_LOG)
+        cout << "Initial State: " << Get_Cut() << endl;
+
+    Cell *Base_Cell = nullptr;
+    int Best_Cut_Repeat = 0;
+    long long ElapsedTimeSeconds;
+    int Pass = 0;
+
+    do{
+        Unlock_Cells();
+        Construct_BucketList();
+        int Left_Gain_Boundary = dist(gen);
+        int Right_Gain_Boundary = dist(gen);
+        while(BucketLists[Left]->Current_Max_Gain >= Left_Gain_Boundary || BucketLists[Right]->Current_Max_Gain >= Right_Gain_Boundary){
+            Base_Cell = Find_Base_Cell();
+            assert(Base_Cell != nullptr);
+            Base_Cell->State = Lock;
+            BucketLists[Base_Cell->Side]->Delete(Base_Cell);
+            Update_Neighbor_Gain(Base_Cell);
+            Update_Base_Cell(Base_Cell);
+        }
+
+        Pass++;
+        int cut = Get_Cut();
+        if(cut < Best_Cut){
+            Best_Cut_Pass = Pass;
+            Best_Cut_Repeat = 0;
+            Best_Cut = cut;
+            for(size_t i = 0; i < Num_Cells; i++){
+                Best_Partition[i] = Cell_Array[i]->Side;
+            }
+        }
+        if(cut == Best_Cut) Best_Cut_Repeat++;
+        if(SHOW_LOG){
+            cout << "[FM(" << Pass << ")]Cut Size: " << cut << ", Best Cut: " << Best_Cut << ", Repeat for: " << Best_Cut_Repeat << ", Not Change for: " << Pass - Best_Cut_Pass << endl;
+        }
+        auto EndTime = chrono::steady_clock::now();
+        ElapsedTimeSeconds = chrono::duration_cast<chrono::seconds>(EndTime - StartTime).count();
+        if(ElapsedTimeSeconds > MAX_EXECUTION_TIME - BUFFER_TIME) break;
+        if(Pass - Best_Cut_Pass > MAX_USELESS_FM_COUNT) break;
+    }while(Best_Cut_Repeat <= CONVERAGE_CRITERIA);
 }
 
 void FM::Initialize_Partition(){
@@ -292,15 +341,15 @@ void FM::Update_Base_Cell(Cell *Base_Cell){
 }
 
 void FM::Unlock_Cells(){
-    for(int i = 0; i < Num_Cells; i++){
-        Cell_Array[i]->State = Not_Lock;
+    for(const auto &cell : Cell_Array){
+        cell->State = Not_Lock;
     }
 }
 
 int FM::Get_Cut()const{
     int cut = 0;
-    for(int i = 0; i < Num_Nets; i++){
-        if(Net_Array[i]->Partition_Size[Left] > 0 && Net_Array[i]->Partition_Size[Right] > 0){
+    for(const auto &net : Net_Array){
+        if(net->Partition_Size[Left] > 0 && net->Partition_Size[Right] > 0){
             cut++;
         }
     }

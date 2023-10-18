@@ -1,6 +1,6 @@
 # ompiler & Linker settings
 CC = g++
-CFLAGS = -g -Wall -O3 -I./include
+CFLAGS = -g -Wall -std=c++11 -pthread -O3 -I./include
 
 # Valgrind for memory issue
 CHECKCC = valgrind
@@ -27,7 +27,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 check:
-	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) testcase/sample.dat testcase/sample.out
+	$(CHECKCC) $(CHECKFLAGS) time ./$(TARGET) testcase/sample1.dat testcase/sample1.out
 
 s1:
 	time ./$(TARGET) testcase/sample1.dat testcase/sample1.out
