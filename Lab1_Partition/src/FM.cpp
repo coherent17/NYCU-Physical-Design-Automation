@@ -1,6 +1,6 @@
 #include "FM.h"
 
-FM::FM():
+FM::FM(Partition_Mode Mode):
     Num_Cells(0),
     Num_Nets(0),
     Max_Degree(0),
@@ -8,7 +8,8 @@ FM::FM():
     Lower_Bound(0),
     Higher_Bound(0),
     Best_Cut(INT_MAX),
-    Best_Cut_Pass(0)
+    Best_Cut_Pass(0),
+    Mode(Mode)
 {
     Partition_Size[Left] = 0;
     Partition_Size[Right] = 0;
@@ -161,14 +162,46 @@ int FM::Get_Best_Cut()const{
 }
 
 void FM::Initialize_Partition(){
-    for(size_t i = 0; i < (size_t)Lower_Bound + 1; i++){
-        Cell_Array[i]->Side = Left;
-        Partition_Size[Left]++;
+    if(Mode == Half_Bound){
+        for(size_t i = 0; i < Num_Cells / 2; i++){
+            Cell_Array[i]->Side = Left;
+            Partition_Size[Left]++;
+        }
+
+        for(size_t i = Num_Cells / 2; i < Num_Cells; i++){
+            Cell_Array[i]->Side = Right;
+            Partition_Size[Right]++;
+        }
     }
 
-    for(size_t i = (size_t)Lower_Bound + 1; i < Num_Cells; i++){
-        Cell_Array[i]->Side = Right;
-        Partition_Size[Right]++;
+    else if(Mode == Boundary_Bound){
+        for(size_t i = 0; i < (size_t)Lower_Bound + 1; i++){
+            Cell_Array[i]->Side = Left;
+            Partition_Size[Left]++;
+        }
+
+        for(size_t i = (size_t)Lower_Bound + 1; i < Num_Cells; i++){
+            Cell_Array[i]->Side = Right;
+            Partition_Size[Right]++;
+        }
+    }
+
+    else if(Mode == Jump_Bound){
+        for(size_t i = 0; i < Num_Cells; i++){
+            if(i % 2 == 0){
+                Cell_Array[i]->Side = Left;
+                Partition_Size[Left]++;
+            }
+            else{
+                Cell_Array[i]->Side = Right;
+                Partition_Size[Right]++;
+            }
+        }
+    }
+
+    else{
+        // should never reach here
+        abort();
     }
 
     // Check for the bounding criteria

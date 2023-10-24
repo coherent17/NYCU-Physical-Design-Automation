@@ -23,10 +23,11 @@ class FM{
         int Best_Cut_Pass;
         vector<Partition_Side> Best_Partition;
         chrono::steady_clock::time_point StartTime;
+        Partition_Mode Mode;
 
     public:
         // Constructor & Destructor
-        FM();
+        FM(Partition_Mode);
         ~FM();
 
         // I/O

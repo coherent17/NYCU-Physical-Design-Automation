@@ -11,8 +11,8 @@
 #define PRINT_DETAIL 0
 
 // FM terminate condition
-#define CONVERAGE_CRITERIA 20
-#define MAX_USELESS_FM_COUNT 60
+#define CONVERAGE_CRITERIA 10
+#define MAX_USELESS_FM_COUNT 30
 
 // Local Search times when finiding better solution
 #define LOCAL_SEARCH_TIME 3
@@ -20,6 +20,13 @@
 // Timing Control
 #define MAX_EXECUTION_TIME 3600
 #define BUFFER_TIME 5
+
+// Different mode used in initial partition
+enum Partition_Mode{
+    Half_Bound = 0,
+    Boundary_Bound = 1,
+    Jump_Bound = 2
+};
 
 // Check whether the cell is locked of not in FM process
 enum Lock_State{
