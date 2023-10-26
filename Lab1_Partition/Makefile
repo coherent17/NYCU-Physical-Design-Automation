@@ -65,6 +65,26 @@ do5:
 	time ./$(TARGET) testcase/input_5.dat testcase/input_5.out
 	./verifier/SolutionChecker testcase/input_5.dat testcase/input_5.out
 
+c1:
+	time ./$(TARGET) testcase/Corner_Case1.dat testcase/Corner_Case1.out
+	./verifier/SolutionChecker testcase/Corner_Case1.dat testcase/Corner_Case1.out
+
+c2:
+	time ./$(TARGET) testcase/Corner_Case2.dat testcase/Corner_Case2.out
+	./verifier/SolutionChecker testcase/Corner_Case2.dat testcase/Corner_Case2.out
+
+c3:
+	time ./$(TARGET) testcase/Corner_Case3.dat testcase/Corner_Case3.out
+	./verifier/SolutionChecker testcase/Corner_Case3.dat testcase/Corner_Case3.out
+
+c4:
+	time ./$(TARGET) testcase/Corner_Case4.dat testcase/Corner_Case4.out
+	./verifier/SolutionChecker testcase/Corner_Case4.dat testcase/Corner_Case4.out
+
+c5:
+	time ./$(TARGET) testcase/Corner_Case5.dat testcase/Corner_Case5.out
+	./verifier/SolutionChecker testcase/Corner_Case5.dat testcase/Corner_Case5.out
+
 runall:
 	perl run_case.pl
 

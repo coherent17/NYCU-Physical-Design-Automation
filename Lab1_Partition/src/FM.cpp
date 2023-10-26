@@ -9,7 +9,8 @@ FM::FM(Partition_Mode Mode):
     Higher_Bound(0),
     Best_Cut(INT_MAX),
     Best_Cut_Pass(0),
-    Mode(Mode)
+    Mode(Mode),
+    Is_Corner_Case(false)
 {
     Partition_Size[Left] = 0;
     Partition_Size[Right] = 0;
@@ -73,6 +74,14 @@ void FM::Parser(ifstream &fin){
     // Calculate partition bound
     Lower_Bound = (1 - Balanced_Factor) * Num_Cells / 2.0;
     Higher_Bound = (1 + Balanced_Factor) * Num_Cells / 2.0;
+
+    if(Num_Cells <= 2){
+        Is_Corner_Case = true;
+
+        if(Num_Cells == 2){
+            Best_Partition[1] = Right;
+        }
+    }
 }
 
 void FM::Dump(ofstream &fout){
@@ -113,6 +122,11 @@ void FM::Run(){
     uniform_int_distribution<int> dist(-1, 0);
 
     Initialize_Partition();
+    if(Is_Corner_Case){
+        Best_Cut = Get_Cut();
+        return;
+    }
+
     Construct_BucketList();
     if(SHOW_LOG)
         cout << "Initial State: " << Get_Cut() << endl;
@@ -162,7 +176,7 @@ int FM::Get_Best_Cut()const{
 }
 
 void FM::Initialize_Partition(){
-    if(Mode == Half_Bound){
+    if(Mode == Half_Bound || Is_Corner_Case){
         for(size_t i = 0; i < Num_Cells / 2; i++){
             Cell_Array[i]->Side = Left;
             Partition_Size[Left]++;

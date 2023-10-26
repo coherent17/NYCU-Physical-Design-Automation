@@ -24,6 +24,7 @@ class FM{
         vector<Partition_Side> Best_Partition;
         chrono::steady_clock::time_point StartTime;
         Partition_Mode Mode;
+        bool Is_Corner_Case;
 
     public:
         // Constructor & Destructor

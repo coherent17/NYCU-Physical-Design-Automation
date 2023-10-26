@@ -1,0 +1,6 @@
+0.5
+NET n1 c2 ;
+NET n3 c4 ;
+NET n3 c4 c2 ;
+NET n3 c2 c4 ;
+NET n3 c4 c2 ;
