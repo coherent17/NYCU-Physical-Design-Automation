@@ -13,7 +13,7 @@ SRCS = $(wildcard $(SRCDIR)/*.cpp)
 OBJS = $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRCS))
 
 # Name of the executable
-TARGET = Lab1
+TARGET = Lab2
 
 all: $(TARGET)
 
@@ -28,6 +28,24 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 
 check:
 	$(CHECKCC) $(CHECKFLAGS) time ./$(TARGET) testcase/sample1.dat testcase/sample1.out
+
+do1:
+	./$(TARGET) testcase/sample.block
+
+do2:
+	./$(TARGET) testcase/ami33.block
+
+do3:
+	./$(TARGET) testcase/ami49.block
+
+do4:
+	./$(TARGET) testcase/apte.block
+
+do5:
+	./$(TARGET) testcase/hp.block
+
+do6:
+	./$(TARGET) testcase/xerox.block
 
 clean:
 	rm -rf $(OBJDIR) $(TARGET) testcase/*.out log report*

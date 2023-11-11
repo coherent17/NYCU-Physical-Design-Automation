@@ -7,7 +7,8 @@ int main(int argc, char *argv[]){
     ofstream fout(argv[2]);
     Floorplan *fp_manager = new Floorplan();
     fp_manager->Parser(fin);
-    fp_manager->Dump(fout);
+    fp_manager->Run();
+    //fp_manager->Dump(fout);
     delete fp_manager;
     return 0;
 }
