@@ -21,9 +21,9 @@ struct Fast_PQ{
     ~Fast_PQ();
 
     // Helper function
-    inline int High(int x);
-    inline int Low(int x);
-    inline int Generate_Index(int x, int y);
+    inline int Which_Cluster(int x);
+    inline int Which_Position(int x);
+    inline int Which_Index(int x, int y);
 
     // Operation
     void Insert(int key);
