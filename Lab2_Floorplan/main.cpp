@@ -8,7 +8,7 @@ int main(int argc, char *argv[]){
     Floorplan *fp_manager = new Floorplan();
     fp_manager->Parser(fin);
     fp_manager->Run();
-    //fp_manager->Dump(fout);
+    fp_manager->Dump(fout);
     delete fp_manager;
     return 0;
 }

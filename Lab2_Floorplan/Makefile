@@ -48,4 +48,4 @@ do6:
 	./$(TARGET) testcase/xerox.block
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) testcase/*.out log report*
+	rm -rf $(OBJDIR) $(TARGET) testcase/*.out out

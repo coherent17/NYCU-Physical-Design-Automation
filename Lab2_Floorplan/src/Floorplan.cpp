@@ -19,13 +19,16 @@ void Floorplan::Parser(ifstream &fin){
         shared_ptr<Block> block = make_shared<Block>(Block_Name, Block_Width, Block_Height);
         Block_Map[Block_Name] = block;
         Blocks.emplace_back(block);
-    } 
+    }
+    Num_Blocks = Blocks.size();
+}
+
+void Floorplan::Dump(ofstream &fout){
+    fout.close();
 }
 
 void Floorplan::Run(){
     Init_Sequence();
-    cout << Evaluate_Sequence(EVALUATE_X) << endl;
-    cout << Evaluate_Sequence(EVALUATE_Y) << endl;
 
     ofstream fout("out");
     fout << Evaluate_Sequence(EVALUATE_X) << " " << Evaluate_Sequence(EVALUATE_Y) << endl;
@@ -53,47 +56,76 @@ void Floorplan::Init_Sequence(){
     cout << endl;
 }
 
+/*
+Compute X, Y coordinate by longest common subsequence(lcs) in O(nlglgn)
+Get X coordinate by evaluate(X, Y)
+Get Y coordinate by evaluate(X^R, Y)
+Algorithm Eval-Seq(X,Y)
+    Initialize_Match_Array MATCH
+    Initialize H, insert the inittial index 0
+    Initialize BUCKL with BUCKL[0] = 0
+    FOR i = 1 TO n DO
+        b = X[i]
+        p = MATCH[b].y
+        insert p to H and BUCKL
+        POS[p] = BUCKL[predecessor(p)]
+        BUCKL[p] = POS[p] + w(b)
+        discard the successors of p from H and BUCKL whose value <= BUCKS[p]
+    RETURN BUCKL[index_max]
+*/
+
 size_t Floorplan::Evaluate_Sequence(int8_t option){
+    // Generate X^R
     if(option & EVALUATE_Y){
         reverse(Positive_Sequence.begin(), Positive_Sequence.end());
     }
-    size_t *match_x = new size_t[Blocks.size()];
-    size_t *match_y = new size_t[Blocks.size()];
-    for(size_t i = 0; i < Blocks.size(); i++){
-        match_x[Positive_Sequence[i]] = i;
-        match_y[Negative_Sequence[i]] = i;
+
+    Match *match = new Match[Num_Blocks];
+    for(size_t i = 0; i < Num_Blocks; i++){
+        match[Positive_Sequence[i]].X = i;
+        match[Negative_Sequence[i]].Y = i;
     }
 
-    VanEmdeBoas *H = new VanEmdeBoas(Blocks.size() + 1);
-    H->Insert(0);
+    Fast_PQ *PQ = new Fast_PQ(Blocks.size() + 1);
+    PQ->Insert(0);
     vector<int> BUCKL(Blocks.size() + 1, 0);
-    for (int i = 0; i < Blocks.size(); ++i) {
+    for (size_t i = 0; i < Blocks.size(); ++i) {
         int b = Positive_Sequence[i];
-        int p = match_y[b];
-        H->Insert(p);
+        int p = match[b].Y;
+        PQ->Insert(p);
         if (option & EVALUATE_X) {
             // x coordinates
-            int pos = BUCKL[H->Predecessor(p)];
+            int pos = BUCKL[PQ->Predecessor(p)];
             BUCKL[p] = pos + Blocks[b]->Width;
             Blocks[b]->X_Coordinate = pos;
         } else {
             // y coordinates
-            int pos = BUCKL[H->Predecessor(p)];
+            int pos = BUCKL[PQ->Predecessor(p)];
             BUCKL[p] = pos + Blocks[b]->Height;
             Blocks[b]->Y_Coordinate = pos;
         }
         int k = p;
-        while (H->Successor(k) != -1) {
-            k = H->Successor(k);
+        while (PQ->Successor(k) != -1) {
+            k = PQ->Successor(k);
             if (BUCKL[k] <= BUCKL[p])
-                H->Delete(k);            
+                PQ->Delete(k);            
         }
     }
 
     if(option & EVALUATE_Y){
         reverse(Positive_Sequence.begin(), Positive_Sequence.end());
     }
-    delete []match_x;
-    delete []match_y;
-    return BUCKL[H->GetMax()];
+    delete []match;
+    return BUCKL[PQ->Maximum];
+}
+
+void Floorplan::Simulate_Annealing(){
+    double Temperature = ANNEALING_TEMPERATURE;
+    while(1){
+
+        for(size_t i = 0; i < STEPS_PER_TEMPERATURE; i++){
+            
+        }
+        Temperature *= TEMPERATURE_DECREASING_RATE;
+    }
 }

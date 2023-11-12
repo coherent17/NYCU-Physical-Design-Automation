@@ -18,16 +18,14 @@ def plot_rectangle(ax, x1, y1, x2, y2):
 
 def read_rpt(filename):
     file = open(filename, 'r')
-    testcase = Path(filename).stem
 
     fig, ax = plt.subplots()
-    ax.set_title(testcase)
     ax.set_xlabel('x-axis')
     ax.set_ylabel('y-axis')
     ax.grid(which = 'major', axis = 'both')
     plt.rc('font', size = 6)
 
-    ax.plot([0], [0])
+    #ax.plot([0], [0])
 
     # <chip_width> <chip_height>
     chip_width, chip_height = file.readline().split()
@@ -35,9 +33,6 @@ def read_rpt(filename):
     chip_height = int(chip_height)
     ax.plot(chip_width, chip_height, 'g*')
     plt.text(chip_width, chip_height, '({}, {})'.format(chip_width, chip_height))  
-
-    # <program_runtime>    
-    file.readline()
 
     # <macro_name> <x1> <y1> <x2> <y2> 
     x_list = []
@@ -64,9 +59,9 @@ def read_rpt(filename):
     for x, y in zip(x_list, y_list):
         plt.text(x, y, '({}, {})'.format(x, y))        
 
-    plot_name = './plot/' + testcase + '.png'
+    plot_name = 't.png'
     plt.savefig(plot_name)
     print('save ' + plot_name)
 
 if __name__ == '__main__':
-    read_rpt(f)
+    read_rpt("out")
