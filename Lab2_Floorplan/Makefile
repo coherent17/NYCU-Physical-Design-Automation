@@ -47,5 +47,8 @@ do5:
 do6:
 	./$(TARGET) testcase/xerox.block
 
+do7:
+	time ./$(TARGET) testcase/sample300.block
+
 clean:
 	rm -rf $(OBJDIR) $(TARGET) testcase/*.out out
