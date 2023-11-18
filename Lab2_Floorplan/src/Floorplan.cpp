@@ -1,7 +1,10 @@
 #include "Floorplan.h"
 
 // Constructor & Destructor
-Floorplan::Floorplan(){
+Floorplan::Floorplan():
+    Width(0),
+    Height(0)
+{
     rng = new Random_Number_Generator();
 }
 
@@ -29,10 +32,14 @@ void Floorplan::Dump(ofstream &fout){
 
 void Floorplan::Run(){
     Init_Sequence();
+    Width = Evaluate_Sequence(EVALUATE_X);
+    Height = Evaluate_Sequence(EVALUATE_Y);
 
     ofstream fout("out");
 
     Simulate_Annealing();
+
+    // output for plot the module
     fout << Evaluate_Sequence(EVALUATE_X) << " " << Evaluate_Sequence(EVALUATE_Y) << endl;
     for(size_t i = 0; i < Blocks.size(); i++){
         fout << Blocks[i]->Name << " " << Blocks[i]->X_Coordinate << " " << Blocks[i]->Y_Coordinate << " " << Blocks[i]->X_Coordinate + Blocks[i]->Width << " " << Blocks[i]->Y_Coordinate + Blocks[i]->Height << endl;
@@ -48,14 +55,17 @@ void Floorplan::Init_Sequence(){
     random_shuffle(Positive_Sequence.begin(), Positive_Sequence.end());
     random_shuffle(Negative_Sequence.begin(), Negative_Sequence.end());
 
-    for(size_t i = 0; i < Blocks.size(); i++){
-        cout << Positive_Sequence[i] << " ";
+    if(PRINT_INITIAL_SEQUENCE_PAIR){
+        cout << "Positive Sequence: ";
+        for(size_t i = 0; i < Blocks.size(); i++){
+            cout << Positive_Sequence[i] << " ";
+        }
+        cout << endl << "Negative Sequence: ";
+        for(size_t i = 0; i < Blocks.size(); i++){
+            cout << Negative_Sequence[i] << " ";
+        }
+        cout << endl;
     }
-    cout << endl;
-    for(size_t i = 0; i < Blocks.size(); i++){
-        cout << Negative_Sequence[i] << " ";
-    }
-    cout << endl;
 }
 
 /*
@@ -76,7 +86,6 @@ Algorithm Eval-Seq(X,Y)
     RETURN BUCKL[index_max]
 */
 
-// expand the function to support both Positive Sequence and Negative Sequence
 size_t Floorplan::Evaluate_Sequence(int8_t option){
     // Generate X^R
     if(option & EVALUATE_Y){

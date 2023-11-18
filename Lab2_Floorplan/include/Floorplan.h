@@ -20,6 +20,8 @@ class Floorplan{
         unordered_map<string, shared_ptr<Block>> Block_Map;
         vector<size_t> Positive_Sequence;
         vector<size_t> Negative_Sequence;
+        size_t Width;
+        size_t Height;
         Random_Number_Generator *rng;
 
     public:

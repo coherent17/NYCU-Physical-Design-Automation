@@ -1,6 +1,11 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+
+// Log Setting
+#define PRINT_INITIAL_SEQUENCE_PAIR true
+
+// Simulated Annealing Setting
 #define ANNEALING_TEMPERATURE 99999999
 #define TEMPERATURE_DECREASING_RATE 0.999
 #define TERMINATE_TEMPERATURE 1

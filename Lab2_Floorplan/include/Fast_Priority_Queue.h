@@ -21,16 +21,16 @@ struct Fast_PQ{
     ~Fast_PQ();
 
     // Helper function
-    inline int Which_Cluster(int x);
-    inline int Which_Position(int x);
-    inline int Which_Index(int x, int y);
+    inline int Which_Cluster(int);
+    inline int Which_Position(int);
+    inline int Which_Index(int, int );
 
     // Operation
-    void Insert(int key);
-    void Delete(int key);
-    int Predecessor(int key);
-    int Successor(int key);
-    bool Is_Member(int key);
+    void Insert(int);
+    void Delete(int);
+    int Predecessor(int);
+    int Successor(int);
+    bool Is_Member(int);
 };
 
 #endif
