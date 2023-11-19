@@ -1,9 +1,6 @@
 #ifndef _FLOORPLAN_H_
 #define _FLOORPLAN_H_
 
-#define EVALUATE_X 0b00000001
-#define EVALUATE_Y 0b00000010
-
 #include <bits/stdc++.h>
 #include "Block.h"
 #include "Util.h"
@@ -22,14 +19,18 @@ class Floorplan{
         vector<size_t> Negative_Sequence;
         size_t Width;
         size_t Height;
+        size_t Area;
         Random_Number_Generator *rng;
+
+        // SA Parameter
+        double Temperature;
 
     public:
         // Constructor & Destructor
         Floorplan();
         ~Floorplan();
 
-        // Parser
+        // Input & Output
         void Parser(ifstream &fin);
         void Dump(ofstream &fout);
 
@@ -38,12 +39,14 @@ class Floorplan{
 
     private:
         void Init_Sequence();
-        size_t Evaluate_Sequence(int8_t option);
-        void Simulate_Annealing();
+        size_t Calculate_X_Coordinate();    // return width
+        size_t Calculate_Y_Coordinate();    // return height
+        void Simulated_Annealing();
 
-        // Two operations for simulated annealing
+        // Three operations for simulated annealing
         void Operation1();  // Swap 2 modules in only 1 sequences
         void Operation2();  // Swap 2 modules in both sequences
+        void Operation3();  // Rotate a block
 };
 
 #endif

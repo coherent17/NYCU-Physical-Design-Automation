@@ -1,6 +1,6 @@
 # ompiler & Linker settings
 CC = g++
-CFLAGS = -g -Wall -std=c++11 -DNDEBUG -pthread -O3 -I./include
+CFLAGS = -g -Wall -std=c++11 -pthread -O3 -I./include
 
 # Valgrind for memory issue
 CHECKCC = valgrind
@@ -13,7 +13,7 @@ SRCS = $(wildcard $(SRCDIR)/*.cpp)
 OBJS = $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRCS))
 
 # Name of the executable
-TARGET = Lab2
+TARGET = Floorplan
 
 all: $(TARGET)
 
@@ -33,7 +33,7 @@ do1:
 	./$(TARGET) testcase/sample.block
 
 do2:
-	./$(TARGET) testcase/ami33.block
+	./$(TARGET) testcase/ami33.block testcase/ami33.rpt
 
 do3:
 	./$(TARGET) testcase/ami49.block
