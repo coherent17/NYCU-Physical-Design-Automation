@@ -11,11 +11,15 @@ class Block{
         size_t Height;
         size_t X_Coordinate;
         size_t Y_Coordinate;
+        bool Is_Rotate;
 
     public:
         // Constructor & Destructor
         Block(string, size_t, size_t);
         ~Block();
+
+        // Rotate method
+        void Rotate();
 
         friend ostream &operator<<(ostream &, const Block &);
 };

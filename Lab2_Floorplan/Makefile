@@ -30,25 +30,25 @@ check:
 	$(CHECKCC) $(CHECKFLAGS) time ./$(TARGET) testcase/sample1.dat testcase/sample1.out
 
 do1:
-	./$(TARGET) testcase/sample.block
+	./$(TARGET) testcase/sample.block testcase/sample.rpt
 
 do2:
 	./$(TARGET) testcase/ami33.block testcase/ami33.rpt
 
 do3:
-	./$(TARGET) testcase/ami49.block
+	./$(TARGET) testcase/ami49.block testcase/ami49.rpt
 
 do4:
-	./$(TARGET) testcase/apte.block
+	./$(TARGET) testcase/apte.block testcase/apte.rpt
 
 do5:
-	./$(TARGET) testcase/hp.block
+	./$(TARGET) testcase/hp.block testcase/hp.rpt
 
 do6:
-	./$(TARGET) testcase/xerox.block
+	./$(TARGET) testcase/xerox.block testcase/xerox.rpt
 
 do7:
-	time ./$(TARGET) testcase/sample300.block
+	time ./$(TARGET) testcase/sample300.block testcase/sample300.rpt
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) testcase/*.out out
+	rm -rf $(OBJDIR) $(TARGET) testcase/*.rpt out
