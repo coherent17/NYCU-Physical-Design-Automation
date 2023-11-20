@@ -16,14 +16,16 @@ global ouptut_module_Rotate
 def parse_arguments():
     parser = argparse.ArgumentParser(
         description='A script that processes input files & output files and generates a floorplan image.',
-        usage='%(prog)s -i Input_Name -o Output_Name -p IMAGES_Name'
+        usage='%(prog)s -i Input_Name -o Output_Name -p IMAGES_Name [-d]'
     )
     # Add the argument for input file
     parser.add_argument('-i', '--input', type=str, help='Input file path', required=True)
     # Add the argument for output file
     parser.add_argument('-o', '--output', type=str, help='Output file path', required=True)
     # Add the argument for output images name
-    parser.add_argument('-p', '--images', type=str, help='images name', required=True)
+    parser.add_argument('-p', '--images', type=str, help='Images name', required=True)
+    # Add the flag for detailed output
+    parser.add_argument('-d', '--detail', action='store_true', help='Output detailed information', default=False)
     # Parse the command-line arguments
     args = parser.parse_args()
     return args
@@ -41,7 +43,6 @@ def Parse_Input(filename):
             name = str(words[0])
             width = int(words[1])
             height = int(words[2])
-            print(name, width, height)
             module_Name.append(name)
             module_Width.append(width)
             module_Height.append(height)
@@ -73,7 +74,7 @@ def Parse_Output(filename):
             else:
                 ouptut_module_Rotate.append(False)
 
-def Plot_Floorplan(filename):
+def Plot_Floorplan(filename, show_detail):
     global chip_width
     global chip_height
     global output_module_Name
@@ -84,12 +85,11 @@ def Plot_Floorplan(filename):
     global module_Width
     global module_Height
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(20, 16))
     ax.set_xlabel('chip width')
     ax.set_ylabel('chip height')
+    ax.set_title(filename)
     plt.rc('font', size=6)
-    print(chip_width)
-    print(chip_height)
     ax.plot(chip_width, chip_height, 'r*', markersize=1)
     plt.text(chip_width, chip_height, '({}, {})'.format(chip_width, chip_height))
     ax.set_xlim(0, chip_width)
@@ -103,7 +103,6 @@ def Plot_Floorplan(filename):
         w = 0
         h = 0
         for index, m_name in enumerate(output_module_Name):
-            print(m_name, name)
             if name == m_name:
                 w = module_Width[index]
                 h = module_Height[index]
@@ -111,20 +110,22 @@ def Plot_Floorplan(filename):
                     w = module_Height[index]
                     h = module_Width[index]
                 break
-        print(x, y, w, h)
         cx = x + w / 2.0
         cy = y + h / 2.0
-        rect = patches.Rectangle((x, y), w, h, edgecolor='black', fill=True)
-        tag = str(name) + '\n' + str(w) + ', ' + str(h)
-        ax.annotate(tag, (cx, cy), color='white', ha='center', va='center')
+        rect = patches.Rectangle((x, y), w, h, edgecolor='black', fill=True, facecolor='gray')
+        tag = str(name)
+        if(show_detail):
+            tag += '\n' + str(w) + ', ' + str(h)
+        ax.annotate(tag, (cx, cy), color='black', ha='center', va='center')
         ax.add_patch(rect)
 
-    ax.plot(x_list, y_list, 'r*')
-    for x, y in zip(x_list, y_list):
-        plt.text(x, y, '({}, {})'.format(x, y))
+    if show_detail:
+        ax.plot(x_list, y_list, 'r*')
+        for x, y in zip(x_list, y_list):
+            plt.text(x, y, '({}, {})'.format(x, y))
 
     plt.savefig(filename)
-    print('finish floorplan visualizer' + filename)
+    print('Finish floorplan visualizer [by VDA Coherent17]')
 
 if __name__ == '__main__':
     # Parse command-line arguments
@@ -134,6 +135,7 @@ if __name__ == '__main__':
     input_filename = args.input
     output_filename = args.output
     images_name = args.images
+    show_detail = args.detail
 
     # Initialize global variables
     module_Name = []
@@ -148,4 +150,4 @@ if __name__ == '__main__':
 
     Parse_Input(input_filename)
     Parse_Output(output_filename)
-    Plot_Floorplan(images_name)
+    Plot_Floorplan(images_name, show_detail)
