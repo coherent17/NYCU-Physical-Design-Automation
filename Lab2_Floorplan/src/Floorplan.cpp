@@ -31,11 +31,17 @@ void Floorplan::Parser(ifstream &fin){
 }
 
 void Floorplan::Dump(ofstream &fout){
+    Width = Calculate_X_Coordinate();
+    Height = Calculate_Y_Coordinate();
+    Area = Width * Height;
     fout << "A = " << Width * Height << endl;
     fout << "R = " << double(Width) / double(Height) << endl;
+    cout << "W/H" << Width << " " << Height << endl;
     for(size_t i = 0; i < Blocks.size(); i++){
         fout << Blocks[i]->Name << " " << Blocks[i]->X_Coordinate << " " << Blocks[i]->Y_Coordinate;
-        if(Blocks[i]->Is_Rotate) fout << " R";
+        if(Blocks[i]->Is_Rotate){
+            fout <<  " R";
+        }
         fout << endl;
     }
     fout.close();
@@ -62,11 +68,18 @@ void Floorplan::Init_Sequence(){
     
     // Change to srand(time(NULL)) before released
     srand(123);
-    random_shuffle(Positive_Sequence.begin(), Positive_Sequence.end());
-    random_shuffle(Negative_Sequence.begin(), Negative_Sequence.end());
-    Width = Calculate_X_Coordinate();
-    Height = Calculate_Y_Coordinate();
-    Area = Width * Height;
+    double R;
+    do{
+        random_shuffle(Positive_Sequence.begin(), Positive_Sequence.end());
+        random_shuffle(Negative_Sequence.begin(), Negative_Sequence.end());
+        Width = Calculate_X_Coordinate();
+        Height = Calculate_Y_Coordinate();
+        Area = Width * Height;
+        R = double(Width) / double(Height);
+        cout << R << endl;
+    }while(R > Aspect_Ratio_Higher_Bound || R < Aspect_Ratio_Lower_Bound);
+    
+
     if(PRINT_INITIAL_SEQUENCE_PAIR){
         cout << "Positive Sequence: ";
         for(size_t i = 0; i < Blocks.size(); i++){
@@ -152,140 +165,171 @@ size_t Floorplan::Calculate_Y_Coordinate(){
 }
 
 void Floorplan::Simulated_Annealing(){
-    while(Temperature > TERMINATE_TEMPERATURE){
+    bool Convergence_Flag = false;
+    size_t Previous_Area = Area;
+    int Num_Consecutive_Temperature_Unchanged = 0;
+    while(Temperature > TERMINATE_TEMPERATURE && !Convergence_Flag){
         for(size_t i = 0; i < STEPS_PER_TEMPERATURE; i++){
             int Which_Operation = rng->Generate_Random_Integer(2);
-            assert(Which_Operation <= 2 && Which_Operation >= 0);
+            assert(Which_Operation <= 3 && Which_Operation >= 0);
+            bool SA_Result;
             switch(Which_Operation){
                 case OPERATION1:
-                    Operation1();
+                    SA_Result = Operation1();
                     break;
                 case OPERATION2:
-                    Operation2();
+                    SA_Result = Operation2();
                     break;
                 case OPERATION3:
-                    Operation3();
+                    SA_Result = Operation3();
+                    break;
+                case OPERATION4:
+                    //SA_Result = Operation4();
                     break;
                 default:
                     abort();
             }
+            cout << SA_Result << endl;
+            cout << "Area: " << Area << endl;
         }
-        Temperature *= TEMPERATURE_DECREASING_RATE;
+        if(Area == Previous_Area){
+            Num_Consecutive_Temperature_Unchanged++;
+            if(Num_Consecutive_Temperature_Unchanged >= MAX_CONSECUTIVE_TEMPERATURN_UNCHANGE){
+                Convergence_Flag = true;
+            }
+        }
+        else{
+            Num_Consecutive_Temperature_Unchanged = 0;
+            Previous_Area = Area;
+        }
+        Temperature = (Temperature > CRITICAL_TEMPERATURE) ? Temperature * TEMPERATURE_DECREASING_FAST_RATE : Temperature * TEMPERATURE_DECREASING_SLOW_RATE;
     }
 }
 
-// Three operations for simulated annealing
-// Swap 2 modules in only 1 sequences
-void Floorplan::Operation1(){
+// Four operations for simulated annealing
+// Swap 2 modules in Positive Sequence
+bool Floorplan::Operation1(){
     cout << "OP1" << endl;
     size_t index1 = rng->Generate_Random_Integer(Num_Blocks - 1);
     size_t index2 = rng->Generate_Random_Integer(Num_Blocks - 1);
-    int Swap_Which_Sequence = rng->Generate_Random_Integer(1);
-    assert(index1 < Num_Blocks && index1 >= 0 && index2 < Num_Blocks && index2 >= 0);
-    assert(Swap_Which_Sequence == 0 || Swap_Which_Sequence == 1);
+    assert(index1 < Num_Blocks && index1 >= 0);
+    assert(index2 < Num_Blocks && index2 >= 0);
 
     size_t New_Width = 0;
     size_t New_Height = 0;
     double New_Aspect_Ratio;
     size_t New_Area = 0;
-    if(Swap_Which_Sequence == POSITIVE_SEQ){
-        swap(Positive_Sequence[index1], Positive_Sequence[index2]);
-        New_Width = Calculate_X_Coordinate();
-        New_Height = Calculate_Y_Coordinate();
-        New_Aspect_Ratio = double(New_Width) / double(New_Height);
-        New_Area = New_Width * New_Height;
 
-        // Illegal Move
-        if(New_Aspect_Ratio > Aspect_Ratio_Higher_Bound || New_Aspect_Ratio < Aspect_Ratio_Lower_Bound){
+    swap(Positive_Sequence[index1], Positive_Sequence[index2]);
+    New_Width = Calculate_X_Coordinate();
+    New_Height = Calculate_Y_Coordinate();
+    New_Area = New_Width * New_Height;
+    New_Aspect_Ratio = double(New_Width) / double(New_Height);
+
+    // Illegal Move
+    if(New_Aspect_Ratio > Aspect_Ratio_Higher_Bound || New_Aspect_Ratio < Aspect_Ratio_Lower_Bound){
+        swap(Positive_Sequence[index1], Positive_Sequence[index2]);
+        Width = Calculate_X_Coordinate();
+        Height = Calculate_Y_Coordinate();
+        Area = Width * Height;
+        return REJECT;
+    }
+
+    // Better Move
+    if(New_Area < Area){
+        Width = New_Width;
+        Height = New_Height;
+        Area = New_Area;
+        return ACCEPT;
+    }
+
+    // Worse but legal move
+    else{
+        double Delta_Area = New_Area - Area;
+        double r = rng->Generate_Random_Float();
+
+        // Accept
+        if(r < exp(-1 * Delta_Area / Temperature)){
+            Width = New_Width;
+            Height = New_Height;
+            Area = New_Area;
+            return ACCEPT;
+        }
+
+        // Reject
+        else{
             swap(Positive_Sequence[index1], Positive_Sequence[index2]);
             Width = Calculate_X_Coordinate();
             Height = Calculate_Y_Coordinate();
             Area = Width * Height;
-            return;
+            return REJECT;
         }
+    }
+}
 
-        // Better Move
-        if(New_Area < Area){
+// Swap 2 modules in Negative Sequence
+bool Floorplan::Operation2(){
+    cout << "OP2" << endl;
+    size_t index1 = rng->Generate_Random_Integer(Num_Blocks - 1);
+    size_t index2 = rng->Generate_Random_Integer(Num_Blocks - 1);
+    assert(index1 < Num_Blocks && index1 >= 0);
+    assert(index2 < Num_Blocks && index2 >= 0);
+
+    size_t New_Width = 0;
+    size_t New_Height = 0;
+    double New_Aspect_Ratio;
+    size_t New_Area = 0;
+
+    swap(Negative_Sequence[index1], Negative_Sequence[index2]);
+    New_Width = Calculate_X_Coordinate();
+    New_Height = Calculate_Y_Coordinate();
+    New_Area = New_Width * New_Height;
+    New_Aspect_Ratio = double(New_Width) / double(New_Height);
+
+    // Illegal Move
+    if(New_Aspect_Ratio > Aspect_Ratio_Higher_Bound || New_Aspect_Ratio < Aspect_Ratio_Lower_Bound){
+        swap(Negative_Sequence[index1], Negative_Sequence[index2]);
+        Width = Calculate_X_Coordinate();
+        Height = Calculate_Y_Coordinate();
+        Area = Width * Height;
+        return REJECT;
+    }
+
+    // Better Move
+    if(New_Area < Area){
+        Width = New_Width;
+        Height = New_Height;
+        Area = New_Area;
+        return ACCEPT;
+    }
+
+    // Worse but legal move
+    else{
+        double Delta_Area = New_Area - Area;
+        double r = rng->Generate_Random_Float();
+
+        // Accept
+        if(r < exp(-1 * Delta_Area / Temperature)){
             Width = New_Width;
             Height = New_Height;
             Area = New_Area;
-            return;
+            return ACCEPT;
         }
 
-        // Worse but Legal Move
-        if(New_Area > Area){
-            double Delta_Area = New_Area - Area;
-            double r = rng->Generate_Random_Float();
-            // Accept
-            if(r < exp(-1 * Delta_Area / Temperature)){
-                cout << "worse" << endl;
-                Width = New_Width;
-                Height = New_Height;
-                Area = New_Area;
-                return;
-            }
-            // Reject
-            else{
-                swap(Positive_Sequence[index1], Positive_Sequence[index2]);
-                Width = Calculate_X_Coordinate();
-                Height = Calculate_Y_Coordinate();
-                Area = Width * Height;
-                return;
-            }
-        }
-    }
-    else if(Swap_Which_Sequence == NEGATIVE_SEQ){
-        swap(Negative_Sequence[index1], Negative_Sequence[index2]);
-        New_Width = Calculate_X_Coordinate();
-        New_Height = Calculate_Y_Coordinate();
-        New_Aspect_Ratio = double(New_Width) / double(New_Height);
-        New_Area = New_Width * New_Height;
-
-        // Illegal Move
-        if(New_Aspect_Ratio > Aspect_Ratio_Higher_Bound || New_Aspect_Ratio < Aspect_Ratio_Lower_Bound){
+        // Reject
+        else{
             swap(Negative_Sequence[index1], Negative_Sequence[index2]);
             Width = Calculate_X_Coordinate();
             Height = Calculate_Y_Coordinate();
             Area = Width * Height;
-            return;
-        }
-
-        // Better Move
-        if(New_Area < Area){
-            Width = New_Width;
-            Height = New_Height;
-            Area = New_Area;
-            return;
-        }
-
-        // Worse but Legal Move
-        if(New_Area > Area){
-            cout << "worse" << endl;
-            double Delta_Area = New_Area - Area;
-            double r = rng->Generate_Random_Float();
-            // Accept
-            if(r < exp(-1 * Delta_Area / Temperature)){
-                Width = New_Width;
-                Height = New_Height;
-                Area = New_Area;
-                return;
-            }
-            // Reject
-            else{
-                swap(Negative_Sequence[index1], Negative_Sequence[index2]);
-                Width = Calculate_X_Coordinate();
-                Height = Calculate_Y_Coordinate();
-                Area = Width * Height;
-                return;
-            }
+            return REJECT;
         }
     }
-    else abort();
 }
 
-// Swap 2 modules in both sequences
-void Floorplan::Operation2(){
-    cout << "OP2" << endl;
+// Swap 2 modules in both Positive & Negative sequences
+bool Floorplan::Operation3(){
+    cout << "OP3" << endl;
     size_t index1 = rng->Generate_Random_Integer(Num_Blocks - 1);
     size_t index2 = rng->Generate_Random_Integer(Num_Blocks - 1);
     size_t index3 = 0;
@@ -304,7 +348,6 @@ void Floorplan::Operation2(){
             break;
         }
     }
-
     assert(index1 < Num_Blocks && index1 >= 0);
     assert(index2 < Num_Blocks && index2 >= 0);
     assert(index3 < Num_Blocks && index3 >= 0);
@@ -323,7 +366,7 @@ void Floorplan::Operation2(){
         Width = Calculate_X_Coordinate();
         Height = Calculate_Y_Coordinate();
         Area = Width * Height;
-        return;
+        return REJECT;
     }
 
     // Better Move
@@ -331,21 +374,22 @@ void Floorplan::Operation2(){
         Width = New_Width;
         Height = New_Height;
         Area = New_Area;
-        return;
+        return ACCEPT;
     }
 
-    // Worse but Legal Move
-    if(New_Area > Area){
-        cout << "worse" << endl;
+    // Worse but legal move
+    else{
         double Delta_Area = New_Area - Area;
         double r = rng->Generate_Random_Float();
+
         // Accept
         if(r < exp(-1 * Delta_Area / Temperature)){
             Width = New_Width;
             Height = New_Height;
             Area = New_Area;
-            return;
+            return ACCEPT;
         }
+
         // Reject
         else{
             swap(Positive_Sequence[index1], Positive_Sequence[index2]);
@@ -353,14 +397,14 @@ void Floorplan::Operation2(){
             Width = Calculate_X_Coordinate();
             Height = Calculate_Y_Coordinate();
             Area = Width * Height;
-            return;
+            return REJECT;
         }
     }
 }
 
 // Rotate a block
-void Floorplan::Operation3(){
-    cout << "OP3" << endl;
+bool Floorplan::Operation4(){
+    cout << "OP4" << endl;
     size_t index = rng->Generate_Random_Integer(Num_Blocks - 1);
     assert(index < Num_Blocks && index >= 0);
     Blocks[index]->Rotate();
@@ -375,7 +419,7 @@ void Floorplan::Operation3(){
         Width = Calculate_X_Coordinate();
         Height = Calculate_Y_Coordinate();
         Area = Width * Height;
-        return;
+        return REJECT;
     }
 
     // Better Move
@@ -383,28 +427,29 @@ void Floorplan::Operation3(){
         Width = New_Width;
         Height = New_Height;
         Area = New_Area;
-        return;
+        return ACCEPT;
     }
 
-    // Worse but Legal Move
-    if(New_Area > Area){
-        cout << "worse" << endl;
+    // Worse but legal move
+    else{
         double Delta_Area = New_Area - Area;
         double r = rng->Generate_Random_Float();
+
         // Accept
         if(r < exp(-1 * Delta_Area / Temperature)){
             Width = New_Width;
             Height = New_Height;
             Area = New_Area;
-            return;
+            return ACCEPT;
         }
+
         // Reject
         else{
             Blocks[index]->Rotate();
             Width = Calculate_X_Coordinate();
             Height = Calculate_Y_Coordinate();
             Area = Width * Height;
-            return;
+            return REJECT;
         }
     }
 }

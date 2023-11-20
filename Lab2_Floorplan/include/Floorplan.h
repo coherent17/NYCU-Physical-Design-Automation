@@ -44,9 +44,10 @@ class Floorplan{
         void Simulated_Annealing();
 
         // Three operations for simulated annealing
-        void Operation1();  // Swap 2 modules in only 1 sequences
-        void Operation2();  // Swap 2 modules in both sequences
-        void Operation3();  // Rotate a block
+        bool Operation1();  // Swap 2 modules in Positive Sequence
+        bool Operation2();  // Swap 2 modules in Negative Sequence
+        bool Operation3();  // Swap 2 modules in both Positive & Negative sequences
+        bool Operation4();  // Rotate a block
 };
 
 #endif
