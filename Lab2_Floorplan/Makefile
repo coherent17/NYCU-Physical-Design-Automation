@@ -69,5 +69,13 @@ do10:
 	time ./$(TARGET) testcase/ami49_5.block testcase/ami49_5.rpt
 	./visualize/floorplan_visualize -i testcase/ami49_5.block -o testcase/ami49_5.rpt -p ami49_5 -d
 
+do11:
+	time ./$(TARGET) testcase/ami49_6.block testcase/ami49_6.rpt
+	./visualize/floorplan_visualize -i testcase/ami49_6.block -o testcase/ami49_6.rpt -p ami49_6 -d
+
+do12:
+	time ./$(TARGET) testcase/ami49_9.block testcase/ami49_9.rpt
+	./visualize/floorplan_visualize -i testcase/ami49_9.block -o testcase/ami49_9.rpt -p ami49_9 -d
+
 clean:
 	rm -rf $(OBJDIR) $(TARGET) testcase/*.rpt out
