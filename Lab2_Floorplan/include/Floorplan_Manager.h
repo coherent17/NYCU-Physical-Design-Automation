@@ -19,6 +19,16 @@ class Floorplan_Manager{
         ifstream fin8;
         ifstream fin9;
         ifstream fin10;
+        ifstream fin11;
+        ifstream fin12;
+        ifstream fin13;
+        ifstream fin14;
+        ifstream fin15;
+        ifstream fin16;
+        ifstream fin17;
+        ifstream fin18;
+        ifstream fin19;
+        ifstream fin20;
         ofstream fout;
 
     public:
