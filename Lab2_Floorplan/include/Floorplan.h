@@ -21,13 +21,17 @@ class Floorplan{
         size_t Height;
         size_t Area;
         Random_Number_Generator *rng;
+        bool Allow_Rotation;
 
         // SA Parameter
         double Temperature;
 
+        // Timing
+        chrono::steady_clock::time_point StartTime;
+
     public:
         // Constructor & Destructor
-        Floorplan();
+        Floorplan(bool Allow_Rotation);
         ~Floorplan();
 
         // Input & Output

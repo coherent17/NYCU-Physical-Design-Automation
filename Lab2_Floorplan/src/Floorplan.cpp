@@ -1,15 +1,17 @@
 #include "Floorplan.h"
 
 // Constructor & Destructor
-Floorplan::Floorplan():
+Floorplan::Floorplan(bool Allow_Rotation):
     Aspect_Ratio_Lower_Bound(0),
     Aspect_Ratio_Higher_Bound(0),
     Num_Blocks(0),
     Width(0),
     Height(0),
+    Allow_Rotation(Allow_Rotation),
     Temperature(ANNEALING_TEMPERATURE)
 {
     rng = new Random_Number_Generator();
+    StartTime = chrono::steady_clock::now();
 }
 
 Floorplan::~Floorplan(){
@@ -36,7 +38,6 @@ void Floorplan::Dump(ofstream &fout){
     Area = Width * Height;
     fout << "A = " << Width * Height << endl;
     fout << "R = " << double(Width) / double(Height) << endl;
-    cout << "W/H" << Width << " " << Height << endl;
     for(size_t i = 0; i < Blocks.size(); i++){
         fout << Blocks[i]->Name << " " << Blocks[i]->X_Coordinate << " " << Blocks[i]->Y_Coordinate;
         if(Blocks[i]->Is_Rotate){
@@ -50,14 +51,6 @@ void Floorplan::Dump(ofstream &fout){
 void Floorplan::Run(){
     Init_Sequence();
     Simulated_Annealing();
-   
-    ofstream fout("out");
-
-    // output for plot the module
-    fout << Calculate_X_Coordinate() << " " <<  Calculate_Y_Coordinate() << endl;
-    for(size_t i = 0; i < Blocks.size(); i++){
-        fout << Blocks[i]->Name << " " << Blocks[i]->X_Coordinate << " " << Blocks[i]->Y_Coordinate << " " << Blocks[i]->X_Coordinate + Blocks[i]->Width << " " << Blocks[i]->Y_Coordinate + Blocks[i]->Height << endl;
-    }
 }
 
 void Floorplan::Init_Sequence(){
@@ -67,20 +60,37 @@ void Floorplan::Init_Sequence(){
     }
     
     // Change to srand(time(NULL)) before released
-    srand(123);
+    srand(time(NULL));
+    //srand(123);
     double R;
-    do{
+
+    bool Is_Valid = false;
+    for(size_t i = 0; i < 10; i++){
         random_shuffle(Positive_Sequence.begin(), Positive_Sequence.end());
         random_shuffle(Negative_Sequence.begin(), Negative_Sequence.end());
-        size_t index = rng->Generate_Random_Integer(Num_Blocks - 1);
-        Blocks[index]->Rotate();
         Width = Calculate_X_Coordinate();
         Height = Calculate_Y_Coordinate();
         Area = Width * Height;
         R = double(Width) / double(Height);
-        cout << R << endl;
-    }while(R > Aspect_Ratio_Higher_Bound || R < Aspect_Ratio_Lower_Bound);
-    
+
+        if(R <= Aspect_Ratio_Higher_Bound && R >= Aspect_Ratio_Lower_Bound){
+            Is_Valid = true;
+            break;
+        }
+    }
+
+    if(!Is_Valid){
+        do{
+            random_shuffle(Positive_Sequence.begin(), Positive_Sequence.end());
+            random_shuffle(Negative_Sequence.begin(), Negative_Sequence.end());
+            size_t index = rng->Generate_Random_Integer(Num_Blocks - 1);
+            Blocks[index]->Rotate();
+            Width = Calculate_X_Coordinate();
+            Height = Calculate_Y_Coordinate();
+            Area = Width * Height;
+            R = double(Width) / double(Height);
+        }while(R > Aspect_Ratio_Higher_Bound || R < Aspect_Ratio_Lower_Bound);
+    }
 
     if(PRINT_INITIAL_SEQUENCE_PAIR){
         cout << "Positive Sequence: ";
@@ -170,29 +180,33 @@ void Floorplan::Simulated_Annealing(){
     bool Convergence_Flag = false;
     size_t Previous_Area = Area;
     int Num_Consecutive_Temperature_Unchanged = 0;
+    int Num_Op = (Allow_Rotation) ? 3 : 2;
     while(Temperature > TERMINATE_TEMPERATURE && !Convergence_Flag){
         for(size_t i = 0; i < STEPS_PER_TEMPERATURE; i++){
-            int Which_Operation = rng->Generate_Random_Integer(2);
+            int Which_Operation = rng->Generate_Random_Integer(Num_Op);
             assert(Which_Operation <= 3 && Which_Operation >= 0);
-            bool SA_Result;
             switch(Which_Operation){
                 case OPERATION1:
-                    SA_Result = Operation1();
+                    Operation1();
                     break;
                 case OPERATION2:
-                    SA_Result = Operation2();
+                    Operation2();
                     break;
                 case OPERATION3:
-                    SA_Result = Operation3();
+                    Operation3();
                     break;
                 case OPERATION4:
-                    //SA_Result = Operation4();
+                    Operation4();
                     break;
                 default:
                     abort();
             }
-            cout << SA_Result << endl;
-            cout << "Area: " << Area << endl;
+            auto EndTime = chrono::steady_clock::now();
+            long long ElapsedTimeSeconds = chrono::duration_cast<chrono::seconds>(EndTime - StartTime).count();
+            if(ElapsedTimeSeconds > MAX_EXECUTION_TIME - BUFFER_TIME){
+                Convergence_Flag = true;
+                break;
+            }
         }
         if(Area == Previous_Area){
             Num_Consecutive_Temperature_Unchanged++;
@@ -211,7 +225,6 @@ void Floorplan::Simulated_Annealing(){
 // Four operations for simulated annealing
 // Swap 2 modules in Positive Sequence
 bool Floorplan::Operation1(){
-    cout << "OP1" << endl;
     size_t index1 = rng->Generate_Random_Integer(Num_Blocks - 1);
     size_t index2 = rng->Generate_Random_Integer(Num_Blocks - 1);
     assert(index1 < Num_Blocks && index1 >= 0);
@@ -271,7 +284,6 @@ bool Floorplan::Operation1(){
 
 // Swap 2 modules in Negative Sequence
 bool Floorplan::Operation2(){
-    cout << "OP2" << endl;
     size_t index1 = rng->Generate_Random_Integer(Num_Blocks - 1);
     size_t index2 = rng->Generate_Random_Integer(Num_Blocks - 1);
     assert(index1 < Num_Blocks && index1 >= 0);
@@ -331,7 +343,6 @@ bool Floorplan::Operation2(){
 
 // Swap 2 modules in both Positive & Negative sequences
 bool Floorplan::Operation3(){
-    cout << "OP3" << endl;
     size_t index1 = rng->Generate_Random_Integer(Num_Blocks - 1);
     size_t index2 = rng->Generate_Random_Integer(Num_Blocks - 1);
     size_t index3 = 0;
@@ -406,7 +417,6 @@ bool Floorplan::Operation3(){
 
 // Rotate a block
 bool Floorplan::Operation4(){
-    cout << "OP4" << endl;
     size_t index = rng->Generate_Random_Integer(Num_Blocks - 1);
     assert(index < Num_Blocks && index >= 0);
     Blocks[index]->Rotate();
