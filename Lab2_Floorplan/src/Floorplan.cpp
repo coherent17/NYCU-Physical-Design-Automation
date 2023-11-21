@@ -72,6 +72,8 @@ void Floorplan::Init_Sequence(){
     do{
         random_shuffle(Positive_Sequence.begin(), Positive_Sequence.end());
         random_shuffle(Negative_Sequence.begin(), Negative_Sequence.end());
+        size_t index = rng->Generate_Random_Integer(Num_Blocks - 1);
+        Blocks[index]->Rotate();
         Width = Calculate_X_Coordinate();
         Height = Calculate_Y_Coordinate();
         Area = Width * Height;

@@ -77,5 +77,17 @@ do12:
 	time ./$(TARGET) testcase/ami49_9.block testcase/ami49_9.rpt
 	./visualize/floorplan_visualize -i testcase/ami49_9.block -o testcase/ami49_9.rpt -p ami49_9 -d
 
+do13:
+	time ./$(TARGET) testcase/boundary_case1.block testcase/boundary_case1.rpt
+	./visualize/floorplan_visualize -i testcase/boundary_case1.block -o testcase/boundary_case1.rpt -p boundary_case1 -d
+
+do14:
+	time ./$(TARGET) testcase/boundary_case2.block testcase/boundary_case2.rpt
+	./visualize/floorplan_visualize -i testcase/boundary_case2.block -o testcase/boundary_case2.rpt -p boundary_case2 -d
+
+do15:
+	time ./$(TARGET) testcase/t300.txt testcase/t300.rpt
+	./visualize/floorplan_visualize -i testcase/t300.txt -o testcase/t300.rpt -p t300 -d
+
 clean:
 	rm -rf $(OBJDIR) $(TARGET) testcase/*.rpt out
