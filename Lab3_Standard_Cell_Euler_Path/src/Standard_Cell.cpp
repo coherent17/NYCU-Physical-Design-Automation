@@ -6,7 +6,9 @@ Standard_Cell::Standard_Cell(){
 }
 
 Standard_Cell::~Standard_Cell(){
-    ;
+    for(const auto &finfet: FinFETs){
+        delete finfet;
+    }
 }
 
 // Parser
@@ -31,8 +33,29 @@ void Standard_Cell::Parse_Spice(ifstream &fin){
         length = stod(length_match.str());
         FinFET *finfet = new FinFET(name, type, drain, gate, source, width, length);
         FinFETs.emplace_back(finfet);
-        cout << line << endl;
-        cout << *finfet << endl;
+        if(PRINT_FINFET_INFO){
+            cout << *finfet << endl;
+        }
     }
     fin.close();
+}
+
+void Standard_Cell::Construct_Graph(){
+    for(const auto &finfet : FinFETs){
+        if(finfet->Type == N_Type){
+            Nmos_Graph.Add_Edge(finfet->Drain, finfet->Source, finfet->Gate);
+        }
+        else if(finfet->Type == P_Type){
+            Pmos_Graph.Add_Edge(finfet->Drain, finfet->Source, finfet->Gate);
+        }
+        else abort();
+        
+    }
+    cout << "NMOS:" << endl << Nmos_Graph << endl;
+    cout << Nmos_Graph.Is_Connected_Graph() << endl;
+    cout << Nmos_Graph.Has_Euler_Path() << endl;
+
+    cout << "PMOS:" << endl << Pmos_Graph << endl;
+    cout << Pmos_Graph.Is_Connected_Graph() << endl;
+    cout << Pmos_Graph.Has_Euler_Path() << endl;
 }

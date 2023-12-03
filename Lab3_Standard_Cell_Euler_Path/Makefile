@@ -32,5 +32,14 @@ check:
 NOR2:
 	./$(TARGET) testcase/NOR2.sp
 
+NAND4:
+	./$(TARGET) testcase/NAND4.sp
+
+s1:
+	./$(TARGET) testcase/s1.sp
+
+s2:
+	./$(TARGET) testcase/s2.sp
+
 clean:
 	rm -rf $(OBJDIR) $(TARGET)
