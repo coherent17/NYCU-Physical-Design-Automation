@@ -79,7 +79,31 @@ boundary_case2:
 
 t300:
 	time ./$(TARGET) testcase/t300.block testcase/t300.rpt
-	./visualize/floorplan_visualize -i testcase/t300.txt -o testcase/t300.block -p t300 -d
+	./visualize/floorplan_visualize -i testcase/t300.block -o testcase/t300.rpt -p t300 -d
+
+c1:
+	time ./$(TARGET) testcase/case1.txt testcase/case1.rpt
+	./visualize/floorplan_visualize -i testcase/case1.txt -o testcase/case1.rpt -p case1 -d
+
+c2:
+	time ./$(TARGET) testcase/case2.txt testcase/case2.rpt
+	./visualize/floorplan_visualize -i testcase/case2.txt -o testcase/case2.rpt -p case2 -d
+
+c3:
+	time ./$(TARGET) testcase/case3.txt testcase/case3.rpt
+	./visualize/floorplan_visualize -i testcase/case3.txt -o testcase/case3.rpt -p case3 -d
+
+c4:
+	time ./$(TARGET) testcase/case4.txt testcase/case4.rpt
+	./visualize/floorplan_visualize -i testcase/case4.txt -o testcase/case4.rpt -p case4 -d
+
+c5:
+	time ./$(TARGET) testcase/case5.txt testcase/case5.rpt
+	./visualize/floorplan_visualize -i testcase/case5.txt -o testcase/case5.rpt -p case5 -d
+
+c6:
+	time ./$(TARGET) testcase/case6.txt testcase/case6.rpt
+	./visualize/floorplan_visualize -i testcase/case6.txt -o testcase/case6.rpt -p case6 -d
 
 clean:
 	rm -rf $(OBJDIR) $(TARGET) testcase/*.rpt out *.png
