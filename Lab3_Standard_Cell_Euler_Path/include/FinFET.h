@@ -6,22 +6,33 @@ using namespace std;
 
 enum FinFET_Type{
     N_Type,
-    P_Type
+    P_Type,
+    Dummy_Type
 };
 
+// Default layout order from left to right: DGS
+// if Swap_Drain_Source, the layout order become SGD
 class FinFET{
     public:
         string Name;
-        FinFET_Type Type;
         string Drain;
         string Gate;
         string Source;
+        FinFET_Type Type;
         double Width;
         double Length;
+        bool Swap_Drain_Source;
+        bool Is_Dummy;
 
     public:
         // Constructor & Destructor
-        FinFET(const string &, FinFET_Type, const string &, const string &, const string &, double, double);
+
+        // 1. For normal finfet
+        FinFET(const string &, const string &, const string &, const string &, FinFET_Type, double, double);
+
+        // 2. For dummy finfet
+        FinFET(bool);
+
         ~FinFET();
 
         // cout FinFET

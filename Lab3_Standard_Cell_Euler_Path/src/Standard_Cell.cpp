@@ -26,36 +26,53 @@ void Standard_Cell::Parse_Spice(ifstream &fin){
         smatch length_match;
         
         ss >> name >> drain >> gate >> source >> body >> pvt >> width_str >> length_str >> nfin;
-        type = (body == "VSS") ? N_Type : P_Type; 
+        type = (pvt == "nmos_rvt") ? N_Type : P_Type; 
         regex_search(width_str, width_match, Float_Pattern);
         regex_search(length_str, length_match, Float_Pattern);
         width = stod(width_match.str());
         length = stod(length_match.str());
-        FinFET *finfet = new FinFET(name, type, drain, gate, source, width, length);
+        FinFET *finfet = new FinFET(name, drain, gate, source, type, width, length);
         FinFETs.emplace_back(finfet);
+        if(type == N_Type){
+            N_FinFETs.emplace_back(finfet);
+        }
+        else if(type == P_Type){
+            P_FinFETs.emplace_back(finfet);
+        }
+        else abort();
+
         if(PRINT_FINFET_INFO){
             cout << *finfet << endl;
         }
     }
     fin.close();
+    Num_FinFETs = FinFETs.size();
+    assert(Num_FinFETs % 2 == 0);
+    assert(Num_FinFETs / 2 == N_FinFETs.size());
+    assert(Num_FinFETs / 2 == P_FinFETs.size());
 }
 
-void Standard_Cell::Construct_Graph(){
-    for(const auto &finfet : FinFETs){
-        if(finfet->Type == N_Type){
-            Nmos_Graph.Add_Edge(finfet->Drain, finfet->Source, finfet->Gate);
-        }
-        else if(finfet->Type == P_Type){
-            Pmos_Graph.Add_Edge(finfet->Drain, finfet->Source, finfet->Gate);
-        }
-        else abort();
-        
+void Standard_Cell::Init_Sequence(){
+    for(const auto &finfet : N_FinFETs){
+        Poly_Sequence.emplace_back(finfet->Gate);
     }
-    cout << "NMOS:" << endl << Nmos_Graph << endl;
-    cout << Nmos_Graph.Is_Connected_Graph() << endl;
-    cout << Nmos_Graph.Has_Euler_Path() << endl;
+    // srand(time(NULL));
+    // random_shuffle(Poly_Sequence.begin(), Poly_Sequence.end());
+    for(const auto &gate : Poly_Sequence){
+        cout << gate << " ";
+    }
+    cout << endl;
 
-    cout << "PMOS:" << endl << Pmos_Graph << endl;
-    cout << Pmos_Graph.Is_Connected_Graph() << endl;
-    cout << Pmos_Graph.Has_Euler_Path() << endl;
+    for(size_t i = 0; i < Poly_Sequence.size(); i++){
+        Poly_Sequence_With_Dummy.emplace_back(Poly_Sequence[i]);
+        if(i == Poly_Sequence.size() - 1){
+            continue;
+        }
+        Poly_Sequence_With_Dummy.emplace_back("Dummy");
+    }
+
+    for(const auto &gate : Poly_Sequence_With_Dummy){
+        cout << gate << " ";
+    }
+    cout << endl;
 }
