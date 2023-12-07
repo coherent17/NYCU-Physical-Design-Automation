@@ -26,14 +26,14 @@ class FinFET{
 
     public:
         // Constructor & Destructor
-
         // 1. For normal finfet
         FinFET(const string &, const string &, const string &, const string &, FinFET_Type, double, double);
-
         // 2. For dummy finfet
         FinFET(bool);
-
         ~FinFET();
+
+        //Swap the drain and source pin for diffusion sharing
+        void Swap_DS();
 
         // cout FinFET
         friend ostream &operator<<(ostream &out, const FinFET &finfet);

@@ -42,5 +42,8 @@ s1:
 s2:
 	./$(TARGET) testcase/s2.sp
 
+s3:
+	./$(TARGET) testcase/ASYNC_DFFHx1_ASAP7_75t_R.sp
+
 clean:
 	rm -rf $(OBJDIR) $(TARGET)

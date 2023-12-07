@@ -32,6 +32,11 @@ FinFET::~FinFET(){
     ;
 }
 
+void FinFET::Swap_DS(){
+    Swap_Drain_Source = !Swap_Drain_Source;
+    swap(Drain, Source);
+}
+
 ostream &operator<<(ostream &out, const FinFET &finfet){
     if(finfet.Is_Dummy){
         out << "Dummy" << endl;
@@ -45,6 +50,6 @@ ostream &operator<<(ostream &out, const FinFET &finfet){
     out << "\tType: " << ((finfet.Type == N_Type) ? "N" : "P") << endl;
     out << "\tWidth: " << finfet.Width << endl;
     out << "\tLength: " << finfet.Length << endl;
-    out << "\tOrder: " << ((finfet.Swap_Drain_Source == false) ? "DGS" : "SGD") << endl; 
+    out << "\tOrder: " << ((finfet.Swap_Drain_Source == false) ? finfet.Drain + " " + finfet.Gate + " " + finfet.Source : finfet.Source + " " + finfet.Gate + " " + finfet.Drain) << endl; 
     return out;
 }
