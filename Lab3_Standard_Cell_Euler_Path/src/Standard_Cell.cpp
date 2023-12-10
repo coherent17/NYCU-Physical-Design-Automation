@@ -123,6 +123,10 @@ void Standard_Cell::Init_Sequence(){
                 }
             }
         }
+        else if(gate == "Dummy"){
+            Layout.emplace_back(make_pair(new FinFET(true), new FinFET(true)));
+        }
+        else abort();
     }
 
     assert(P_Poly_Map_Copy.size() == 0);
@@ -131,9 +135,10 @@ void Standard_Cell::Init_Sequence(){
     for(const auto &pair : Layout){
         FinFET *PMOS = pair.first;
         FinFET *NMOS = pair.second;
+        if(PMOS->Name == "Dummy" && NMOS->Name == "Dummy") continue;
         assert(PMOS->Gate == NMOS->Gate);
         cout << PMOS->Gate << endl;
         cout << "\tP:\t" << ((PMOS->Swap_Drain_Source == false) ? PMOS->Drain + " " + PMOS->Gate + " " + PMOS->Source : PMOS->Source + " " + PMOS->Gate + " " + PMOS->Drain) << endl;
-        cout << "\tN:\t" << ((NMOS->Swap_Drain_Source == false) ? NMOS->Drain + " " + NMOS->Gate + " " + NMOS->Source : NMOS->Source + " " + NMOS->Gate + " " + NMOS->Drain) << endl; 
+        cout << "\tN:\t" << ((NMOS->Swap_Drain_Source == false) ? NMOS->Drain + " " + NMOS->Gate + " " + NMOS->Source : NMOS->Source + " " + NMOS->Gate + " " + NMOS->Drain) << endl;
     }
 }

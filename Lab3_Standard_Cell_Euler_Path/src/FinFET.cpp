@@ -9,7 +9,10 @@ FinFET::FinFET(const string &name, const string &drain, const string &gate, cons
     Width(width),
     Length(length),
     Swap_Drain_Source(false),
-    Is_Dummy(false)
+    Is_Dummy(false),
+    Drain_X(0),
+    Gate_X(0),
+    Source_X(0)
 {
     ;
 }
@@ -23,7 +26,10 @@ FinFET::FinFET(bool is_dummy):
     Width(0),
     Length(0),
     Swap_Drain_Source(false),
-    Is_Dummy(true)
+    Is_Dummy(true),
+    Drain_X(0),
+    Gate_X(0),
+    Source_X(0)
 {
 
 }

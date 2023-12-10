@@ -23,6 +23,9 @@ class FinFET{
         double Length;
         bool Swap_Drain_Source;
         bool Is_Dummy;
+        double Drain_X;
+        double Gate_X;
+        double Source_X;
 
     public:
         // Constructor & Destructor
