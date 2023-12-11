@@ -85,10 +85,15 @@ void Standard_Cell::Spice_Parser(ifstream &fin){
         }
         cout << endl;
     }
+    P_Active_Width = P_FinFETs.front()->Width;
+    N_Active_Width = N_FinFETs.front()->Width;
+    N_Active_Center_Height = N_FinFETs.front()->Length / 2;
+    P_Active_Center_Height = N_FinFETs.front()->Length + ACTIVE_VERTICAL_SPACING + P_FinFETs.front()->Length / 2;
 }
 
 void Standard_Cell::Run(){
     Init_Poly_Sequence();
+    Calculate_HPWL();
 }
 
 void Standard_Cell::Init_Poly_Sequence(){
@@ -153,4 +158,56 @@ void Standard_Cell::Init_Poly_Sequence(){
         cout << PMOS->Left_Diffusion_Pin << " " << PMOS->Gate << " " << PMOS->Right_Diffusion_Pin << endl;
         cout << NMOS->Left_Diffusion_Pin << " " << NMOS->Gate << " " << NMOS->Right_Diffusion_Pin << endl;
     }
+}
+
+double Standard_Cell::Calculate_HPWL(){
+    double hpwl = 0;
+    double x_coordinate_offset = 0;
+    size_t finfet_count = 0;
+    for(const auto &pair : Layout){
+        FinFET *PMOS = pair.first;
+        FinFET *NMOS = pair.second;
+        if(PMOS->Name == "Dummy" && NMOS->Name == "Dummy"){
+            PMOS->Gate_X_Coordinate = x_coordinate_offset + (GATE_WIDTH + GATE_SPACING) * 2;
+            NMOS->Gate_X_Coordinate = x_coordinate_offset + (GATE_WIDTH + GATE_SPACING) * 2;
+            x_coordinate_offset = x_coordinate_offset + (GATE_WIDTH + GATE_SPACING) * 2;
+        }
+        else{
+            assert(PMOS->Type != Dummy);
+            assert(NMOS->Type != Dummy);
+            if(finfet_count == 0){
+                PMOS->Gate_X_Coordinate = GATE_ACTIVE_EXTENSION + GATE_WIDTH / 2;
+                NMOS->Gate_X_Coordinate = GATE_ACTIVE_EXTENSION + GATE_WIDTH / 2;
+                x_coordinate_offset = GATE_ACTIVE_EXTENSION + GATE_WIDTH / 2;
+            }
+            else{
+                PMOS->Gate_X_Coordinate = x_coordinate_offset + GATE_SPACING + GATE_WIDTH;
+                NMOS->Gate_X_Coordinate = x_coordinate_offset + GATE_SPACING + GATE_WIDTH;
+                x_coordinate_offset = x_coordinate_offset + GATE_SPACING + GATE_WIDTH;
+            }
+            finfet_count++;
+        }
+    }
+
+    for(const auto &pair : FinFET_Pin_Map){
+        string pin_name = pair.first;
+        double min_x = 0;
+        double min_y = 0;
+        double max_x = INT_MAX;
+        double max_y = INT_MAX;
+        for(const auto finfet : pair.second){
+            if(finfet->Type == N_Type){
+                if(pin_name == finfet->Left_Diffusion_Pin && pin_name == finfet->Right_Diffusion_Pin){
+                    min_x = min({min_x, finfet->Gate_X_Coordinate - GATE_WIDTH / 2 - });
+                }
+                else if(pin)
+            }
+            else if(finfet->Type == P_Type){
+
+            }
+            else abort();
+        }
+    }
+    
+    return hpwl;
 }

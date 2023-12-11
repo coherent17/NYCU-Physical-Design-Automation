@@ -3,6 +3,7 @@
 
 #include <bits/stdc++.h>
 #include "FinFET.h"
+#include "Design_Rule.h"
 using namespace std;
 
 struct Standard_Cell{
@@ -15,6 +16,11 @@ struct Standard_Cell{
     unordered_map<string, vector<FinFET *>> N_FinFET_Poly_Map;
     unordered_map<string, vector<FinFET *>> P_FinFET_Poly_Map;
     list<pair<FinFET *, FinFET *>> Layout;
+    double P_Active_Width;
+    double N_Active_Width;
+    double P_Active_Center_Height;
+    double N_Active_Center_Height;
+
 
     // Constructor & Destructor
     Standard_Cell();
@@ -28,6 +34,7 @@ struct Standard_Cell{
 
     // Helper Method
     void Init_Poly_Sequence();
+    double Calculate_HPWL();
 };
 
 #endif
