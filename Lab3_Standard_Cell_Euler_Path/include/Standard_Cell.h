@@ -1,38 +1,33 @@
 #ifndef _STANDARD_CELL_H_
 #define _STANDARD_CELL_H_
 
-#include "FinFET.h"
-#include "Design_Rule.h"
 #include <bits/stdc++.h>
+#include "FinFET.h"
 using namespace std;
 
-#define PRINT_FINFET_INFO true
+struct Standard_Cell{
+    size_t Num_FinFETs;
+    vector<FinFET *> FinFETs;
+    vector<FinFET *> N_FinFETs;
+    vector<FinFET *> P_FinFETs;
+    set<string> Pin_Names;  // Store the drain & source name
+    unordered_map<string, vector<FinFET *>> FinFET_Pin_Map;
+    unordered_map<string, vector<FinFET *>> N_FinFET_Poly_Map;
+    unordered_map<string, vector<FinFET *>> P_FinFET_Poly_Map;
+    list<pair<FinFET *, FinFET *>> Layout;
 
-class Standard_Cell{
-    public:
-        vector<FinFET *> FinFETs;
-        vector<FinFET *> N_FinFETs;
-        vector<FinFET *> P_FinFETs;
-        multimap<string, FinFET *> N_Poly_Map;
-        multimap<string, FinFET *> P_Poly_Map;
-        size_t Num_FinFETs;
-        set<string> Nodes;
+    // Constructor & Destructor
+    Standard_Cell();
+    ~Standard_Cell();
 
-        vector<string> Poly_Sequence;
-        vector<string> Poly_Sequence_With_Dummy;
-        vector<pair<FinFET *, FinFET *>> Layout;
+    // Parser
+    void Spice_Parser(ifstream &);
 
+    // Main Algorithm
+    void Run();
 
-    public:
-        // Constructor & Destructor
-        Standard_Cell();
-        ~Standard_Cell();
-
-        // Parser
-        void Parse_Spice(ifstream &fin);
-
-        // Init the sequence
-        void Init_Sequence();
+    // Helper Method
+    void Init_Poly_Sequence();
 };
 
 #endif

@@ -7,39 +7,28 @@ using namespace std;
 enum FinFET_Type{
     N_Type,
     P_Type,
-    Dummy_Type
+    Dummy
 };
 
-// Default layout order from left to right: DGS
-// if Swap_Drain_Source, the layout order become SGD
-class FinFET{
-    public:
-        string Name;
-        string Drain;
-        string Gate;
-        string Source;
-        FinFET_Type Type;
-        double Width;
-        double Length;
-        bool Swap_Drain_Source;
-        bool Is_Dummy;
-        double Drain_X;
-        double Gate_X;
-        double Source_X;
+struct FinFET{
+    string Name;
+    string Drain;
+    string Gate;
+    string Source;
+    FinFET_Type Type;
+    double Width;
+    double Length;
+    double Gate_X_Coordinate;
+    bool Is_Dummy;
+    string Left_Diffusion_Pin;
+    string Right_Diffusion_Pin;
 
-    public:
-        // Constructor & Destructor
-        // 1. For normal finfet
-        FinFET(const string &, const string &, const string &, const string &, FinFET_Type, double, double);
-        // 2. For dummy finfet
-        FinFET(bool);
-        ~FinFET();
+    // Constructor & Destructor
+    FinFET(const string &, const string &, const string &, const string &, FinFET_Type, double, double);
+    FinFET();   // For Dummy FinFET
+    ~FinFET();
 
-        //Swap the drain and source pin for diffusion sharing
-        void Swap_DS();
-
-        // cout FinFET
-        friend ostream &operator<<(ostream &out, const FinFET &finfet);
+    friend ostream &operator<<(ostream &out, const FinFET &finfet);
 };
 
 #endif

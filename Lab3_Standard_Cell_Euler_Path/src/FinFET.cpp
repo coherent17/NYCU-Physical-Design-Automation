@@ -1,61 +1,61 @@
 #include "FinFET.h"
 
 FinFET::FinFET(const string &name, const string &drain, const string &gate, const string &source, FinFET_Type type, double width, double length):
-    Name(name),
-    Drain(drain),
-    Gate(gate),
-    Source(source),
-    Type(type),
-    Width(width),
+    Name(name), 
+    Drain(drain), 
+    Gate(gate), 
+    Source(source), 
+    Type(type), 
+    Width(width), 
     Length(length),
-    Swap_Drain_Source(false),
-    Is_Dummy(false),
-    Drain_X(0),
-    Gate_X(0),
-    Source_X(0)
+    Gate_X_Coordinate(0),
+    Is_Dummy(type == Dummy),
+    Left_Diffusion_Pin(drain),
+    Right_Diffusion_Pin(source)
 {
     ;
 }
 
-FinFET::FinFET(bool is_dummy):
-    Name("Dummy"),
-    Drain("Dummy_D"),
-    Gate("Dummy_G"),
-    Source("Dummy_S"),
-    Type(Dummy_Type),
-    Width(0),
-    Length(0),
-    Swap_Drain_Source(false),
+FinFET::FinFET():
+    Name("Dummy"), 
+    Drain("UNSET"), 
+    Gate("UNSET"), 
+    Source("UNSET"), 
+    Type(Dummy), 
+    Width(0.0), 
+    Length(0.0),
+    Gate_X_Coordinate(0),
     Is_Dummy(true),
-    Drain_X(0),
-    Gate_X(0),
-    Source_X(0)
+    Left_Diffusion_Pin(""),
+    Right_Diffusion_Pin("")
 {
-
-}
-
-FinFET::~FinFET(){
     ;
 }
 
-void FinFET::Swap_DS(){
-    Swap_Drain_Source = !Swap_Drain_Source;
-    swap(Drain, Source);
+FinFET::~FinFET() {
+    ;
 }
 
-ostream &operator<<(ostream &out, const FinFET &finfet){
-    if(finfet.Is_Dummy){
-        out << "Dummy" << endl;
-        return out;
+ostream &operator<<(ostream &out, const FinFET &finfet) {
+    out << "Name: " << finfet.Name << "\n";
+    out << "Drain: " << finfet.Drain << "\n";
+    out << "Gate: " << finfet.Gate << "\n";
+    out << "Source: " << finfet.Source << "\n";
+    out << "Type: ";
+    switch (finfet.Type) {
+        case N_Type:
+            out << "N_Type";
+            break;
+        case P_Type:
+            out << "P_Type";
+            break;
+        case Dummy:
+            out << "Dummy";
+            break;
     }
-
-    out << finfet.Name << endl;
-    out << "\tDrain: " << finfet.Drain << endl;
-    out << "\tGate: " << finfet.Gate << endl;
-    out << "\tSorce: " << finfet.Source << endl;
-    out << "\tType: " << ((finfet.Type == N_Type) ? "N" : "P") << endl;
-    out << "\tWidth: " << finfet.Width << endl;
-    out << "\tLength: " << finfet.Length << endl;
-    out << "\tOrder: " << ((finfet.Swap_Drain_Source == false) ? finfet.Drain + " " + finfet.Gate + " " + finfet.Source : finfet.Source + " " + finfet.Gate + " " + finfet.Drain) << endl; 
+    out << "\nWidth: " << finfet.Width << "\n";
+    out << "Length: " << finfet.Length << "\n";
+    out << "Gate X Coordinate: " << finfet.Gate_X_Coordinate << "\n";
+    out << "Is Dummy: " << (finfet.Is_Dummy ? "Yes" : "No") << "\n";
     return out;
 }
