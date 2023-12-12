@@ -22,6 +22,8 @@ struct FinFET{
     bool Is_Dummy;
     string Left_Diffusion_Pin;
     string Right_Diffusion_Pin;
+    double Left_Diffusion_X_Coordinate;
+    double Right_Diffusion_X_Coordinate;
 
     // Constructor & Destructor
     FinFET(const string &, const string &, const string &, const string &, FinFET_Type, double, double);

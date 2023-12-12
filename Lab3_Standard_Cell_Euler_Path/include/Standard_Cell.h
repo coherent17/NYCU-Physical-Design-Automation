@@ -28,6 +28,7 @@ struct Standard_Cell{
 
     // Parser
     void Spice_Parser(ifstream &);
+    void Dump(ofstream &);
 
     // Main Algorithm
     void Run();

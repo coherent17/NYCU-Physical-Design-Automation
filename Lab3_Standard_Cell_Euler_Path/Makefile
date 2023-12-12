@@ -28,22 +28,22 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 check:
-	$(CHECKCC) $(CHECKFLAGS) time ./$(TARGET) testcase/NOR2.sp
+	$(CHECKCC) $(CHECKFLAGS) time ./$(TARGET) testcase/NOR2.sp testcase/NOR2.rpt
 
 NOR2:
-	./$(TARGET) testcase/NOR2.sp
+	./$(TARGET) testcase/NOR2.sp testcase/NOR2.rpt
 
 NAND4:
-	./$(TARGET) testcase/NAND4.sp
+	./$(TARGET) testcase/NAND4.sp testcase/NAND4.rpt
 
 s1:
-	./$(TARGET) testcase/s1.sp
+	./$(TARGET) testcase/s1.sp testcase/s1.rpt
 
 s2:
-	./$(TARGET) testcase/s2.sp
+	./$(TARGET) testcase/s2.sp testcase/s2.rpt
 
 s3:
-	./$(TARGET) testcase/ASYNC_DFFHx1_ASAP7_75t_R.sp
+	./$(TARGET) testcase/ASYNC_DFFHx1_ASAP7_75t_R.sp testcase/s3.rpt
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET)
+	rm -rf $(OBJDIR) $(TARGET) testcase/*.rpt

@@ -1,0 +1,5 @@
+571.5
+M4 Dummy M3 
+Y B net1 Dummy net1 A VDD 
+M1 Dummy M2 
+Y B VSS Dummy Y A VSS 

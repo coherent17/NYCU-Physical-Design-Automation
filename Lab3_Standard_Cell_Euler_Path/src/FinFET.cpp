@@ -11,7 +11,9 @@ FinFET::FinFET(const string &name, const string &drain, const string &gate, cons
     Gate_X_Coordinate(0),
     Is_Dummy(type == Dummy),
     Left_Diffusion_Pin(drain),
-    Right_Diffusion_Pin(source)
+    Right_Diffusion_Pin(source),
+    Left_Diffusion_X_Coordinate(0),
+    Right_Diffusion_X_Coordinate(0)
 {
     ;
 }
@@ -27,7 +29,9 @@ FinFET::FinFET():
     Gate_X_Coordinate(0),
     Is_Dummy(true),
     Left_Diffusion_Pin(""),
-    Right_Diffusion_Pin("")
+    Right_Diffusion_Pin(""),
+    Left_Diffusion_X_Coordinate(0),
+    Right_Diffusion_X_Coordinate(0)
 {
     ;
 }
