@@ -50,11 +50,14 @@ class Standard_Cell{
         void Simulated_Annealing();
 
         //Operations for simulated annealing
-        bool Operation1();  // Swap DS in PMOS
-        bool Operation2();  // Swap DS in NMOS
-        bool Operation3();  // Swap 2 pair of PNMOS
-        
+        bool SA_Operation1();  // Swap DS in PMOS
+        bool SA_Operation2();  // Swap DS in NMOS
+        bool SA_Operation3();  // Swap 2 pair in both PMOS & NMOS
+
         void Remove_Dummy();
+
+        // Final Fine Tune with Greedy
+        void Greedy_Optimize();
 };
 
 #endif
