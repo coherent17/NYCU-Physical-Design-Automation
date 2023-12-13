@@ -61,37 +61,36 @@ void Standard_Cell::Spice_Parser(ifstream &fin){
 
     // Standard Cell Property Check
     assert(Num_FinFETs % 2 == 0);
-    cout << Num_FinFETs / 2 << " " << N_FinFETs.size() << endl;
     assert(Num_FinFETs / 2 == N_FinFETs.size());
     assert(Num_FinFETs / 2 == P_FinFETs.size());
     assert(N_FinFET_Poly_Map.size() == P_FinFET_Poly_Map.size());
 
-    cout << "########### Pin Map ###########" << endl;
-    for(const auto &pair : FinFET_Pin_Map){
-        cout << pair.first << "->";
-        for(const auto &finfet : pair.second){
-            cout << finfet->Name << " ";
-        }
-        cout << endl;
-    }
+    // cout << "########### Pin Map ###########" << endl;
+    // for(const auto &pair : FinFET_Pin_Map){
+    //     cout << pair.first << "->";
+    //     for(const auto &finfet : pair.second){
+    //         cout << finfet->Name << " ";
+    //     }
+    //     cout << endl;
+    // }
 
-    cout << "########### N Poly Map ###########" << endl;
-    for(const auto &pair : N_FinFET_Poly_Map){
-        cout << pair.first << "->";
-        for(const auto &finfet : pair.second){
-            cout << finfet->Name << " ";
-        }
-        cout << endl;
-    }
+    // cout << "########### N Poly Map ###########" << endl;
+    // for(const auto &pair : N_FinFET_Poly_Map){
+    //     cout << pair.first << "->";
+    //     for(const auto &finfet : pair.second){
+    //         cout << finfet->Name << " ";
+    //     }
+    //     cout << endl;
+    // }
     
-    cout << "########### P Poly Map ###########" << endl;
-    for(const auto &pair : P_FinFET_Poly_Map){
-        cout << pair.first << "->";
-        for(const auto &finfet : pair.second){
-            cout << finfet->Name << " ";
-        }
-        cout << endl;
-    }
+    // cout << "########### P Poly Map ###########" << endl;
+    // for(const auto &pair : P_FinFET_Poly_Map){
+    //     cout << pair.first << "->";
+    //     for(const auto &finfet : pair.second){
+    //         cout << finfet->Name << " ";
+    //     }
+    //     cout << endl;
+    // }
     P_Active_Width = P_FinFETs.front()->Width;
     N_Active_Width = N_FinFETs.front()->Width;
     N_Active_Center_Height = N_Active_Width / 2.0;
@@ -163,6 +162,11 @@ void Standard_Cell::Run(){
     Init_Poly_Sequence();
     Simulated_Annealing();
     Remove_Dummy();
+    HPWL = Calculate_HPWL();
+}
+
+double Standard_Cell::Get_HPWL(){
+    return HPWL;
 }
 
 void Standard_Cell::Init_Poly_Sequence(){
@@ -173,13 +177,13 @@ void Standard_Cell::Init_Poly_Sequence(){
         Poly_Sequence.emplace_back(finfet->Gate);
     }
     // Should add these 2 line when release
-    srand(time(NULL));
+    srand(time(nullptr));
     random_shuffle(Poly_Sequence.begin(), Poly_Sequence.end());
-    cout << "########### Gate Seq ###########" << endl;
-    for(const auto &gate : Poly_Sequence){
-        cout << gate << " ";
-    }
-    cout << endl;
+    // cout << "########### Gate Seq ###########" << endl;
+    // for(const auto &gate : Poly_Sequence){
+    //     cout << gate << " ";
+    // }
+    // cout << endl;
 
     for(size_t i = 0; i < Poly_Sequence.size(); i++){
         Poly_Sequence_With_Dummy.emplace_back(Poly_Sequence[i]);
@@ -188,11 +192,11 @@ void Standard_Cell::Init_Poly_Sequence(){
         }
     }
 
-    cout << "########### Gate Seq With Dummy ###########" << endl;
-    for(const auto &gate : Poly_Sequence_With_Dummy){
-        cout << gate << " ";
-    }
-    cout << endl;
+    // cout << "########### Gate Seq With Dummy ###########" << endl;
+    // for(const auto &gate : Poly_Sequence_With_Dummy){
+    //     cout << gate << " ";
+    // }
+    // cout << endl;
 
     // Init the layout
     // Map gate to place the source and drain
@@ -230,7 +234,7 @@ void Standard_Cell::Init_Poly_Sequence(){
         assert(entry.second.size() == 0);
     }
     HPWL = Calculate_HPWL();
-    cout << "Init HPWL: " << HPWL << endl;
+    // cout << "Init HPWL: " << HPWL << endl;
     // for(const auto &pair : Layout){
     //     FinFET *PMOS = pair.first;
     //     FinFET *NMOS = pair.second;
@@ -372,23 +376,40 @@ double Standard_Cell::Calculate_HPWL(){
 }
 
 void Standard_Cell::Simulated_Annealing(){
-    while(Temperature > TERMINATE_TEMPERATURE){
+    bool Convergence_Flag = false;
+    double Previous_HPWL = Calculate_HPWL();
+    int Num_Consecutive_Temperature_Unchanged = 0;
+    while(Temperature > TERMINATE_TEMPERATURE && !Convergence_Flag){
         for(size_t i = 0; i < STEPS_PER_TEMPERATURE; i++){
             int Which_Operation = rng->Generate_Random_Integer(2);
-            bool sa_result;
+            //bool sa_result;
             switch(Which_Operation){
                 case OPERATION1:
-                    sa_result = SA_Operation1();
+                    /*sa_result = */SA_Operation1();
+                    //cout << ((sa_result == ACCEPT) ? "[M1]Accept" : "[M1]Reject ") << HPWL << endl;
                     break;
                 case OPERATION2:
-                    sa_result = SA_Operation2();
+                    /*sa_result = */SA_Operation2();
+                    //cout << ((sa_result == ACCEPT) ? "[M2]Accept" : "[M2]Reject ") << HPWL << endl;
                     break;
                 case OPERATION3:
-                    sa_result = SA_Operation3();
+                    /*sa_result = */SA_Operation3();
+                    //cout << ((sa_result == ACCEPT) ? "[M3]Accept" : "[M3]Reject ") << HPWL << endl;
                     break;
                 default:
                     abort();
             }
+        }
+        if(HPWL == Previous_HPWL){
+            Num_Consecutive_Temperature_Unchanged++;
+            if(Num_Consecutive_Temperature_Unchanged >= MAX_CONSECUTIVE_TEMPERATURN_UNCHANGE){
+                cout << "early break" << endl;
+                Convergence_Flag = true;
+            }
+        }
+        else{
+            Num_Consecutive_Temperature_Unchanged = 0;
+            Previous_HPWL = HPWL;
         }
         //cout << Temperature << " " << HPWL << endl;
         Temperature = (Temperature > CRITICAL_TEMPERATURE) ? Temperature * TEMPERATURE_DECREASING_FAST_RATE : Temperature * TEMPERATURE_DECREASING_SLOW_RATE;

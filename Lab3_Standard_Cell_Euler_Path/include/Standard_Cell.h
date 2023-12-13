@@ -43,6 +43,9 @@ class Standard_Cell{
         // Main Algorithm
         void Run();
 
+        // Getter
+        double Get_HPWL();
+
     private:
         // Helper Method
         void Init_Poly_Sequence();
@@ -55,9 +58,6 @@ class Standard_Cell{
         bool SA_Operation3();  // Swap 2 pair in both PMOS & NMOS
 
         void Remove_Dummy();
-
-        // Final Fine Tune with Greedy
-        void Greedy_Optimize();
 };
 
 #endif
