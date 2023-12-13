@@ -1,5 +1,0 @@
-18148.5
-M25 Dummy M22 Dummy M35 Dummy M3 Dummy M45 Dummy M13 Dummy M1 Dummy M21 Dummy M28 Dummy M7 Dummy M37 Dummy M46 Dummy M49 Dummy M10 Dummy M42 Dummy M11 
-QN SH VDD Dummy clkb clkn VDD Dummy SH clkb pd2 Dummy pu1 D VDD Dummy net076 RESET VDD Dummy MS clkn SH Dummy MH clkb pu1 Dummy clkn CLK VDD Dummy SS SH net076 Dummy MS MH net079 Dummy pd2 SS net077 Dummy net079 SET VDD Dummy net078 RESET VDD Dummy MH clkn net051 Dummy net077 SET VDD Dummy net051 MS net078 
-M24 Dummy M23 Dummy M12 Dummy M5 Dummy M44 Dummy M34 Dummy M9 Dummy M20 Dummy M29 Dummy M6 Dummy M33 Dummy M43 Dummy M48 Dummy M4 Dummy M47 Dummy M8 
-QN SH VSS Dummy clkb clkn VSS Dummy MS clkb SH Dummy pd1 D VSS Dummy SS RESET VSS Dummy SH clkn pd3 Dummy MH clkb net020 Dummy clkn CLK VSS Dummy SS SH VSS Dummy MS MH VSS Dummy pd3 SS VSS Dummy pd3 SET VSS Dummy net020 RESET VSS Dummy MH clkn pd1 Dummy MS SET VSS Dummy net020 MS VSS 

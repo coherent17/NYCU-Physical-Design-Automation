@@ -1,5 +1,0 @@
-1701
-M6 Dummy M5 Dummy M7 Dummy M8 
-OUT I2 VDD Dummy OUT I1 VDD Dummy OUT I3 VDD Dummy OUT I4 VDD 
-M2 Dummy M1 Dummy M3 Dummy M4 
-net1 I2 net2 Dummy OUT I1 net1 Dummy net2 I3 net3 Dummy net3 I4 VSS 

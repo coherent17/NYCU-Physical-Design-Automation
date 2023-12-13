@@ -164,8 +164,8 @@ void Standard_Cell::Init_Poly_Sequence(){
         Poly_Sequence.emplace_back(finfet->Gate);
     }
     // Should add these 2 line when release
-    srand(time(NULL));
-    random_shuffle(Poly_Sequence.begin(), Poly_Sequence.end());
+    // srand(time(NULL));
+    // random_shuffle(Poly_Sequence.begin(), Poly_Sequence.end());
     cout << "########### Gate Seq ###########" << endl;
     for(const auto &gate : Poly_Sequence){
         cout << gate << " ";
@@ -313,45 +313,32 @@ double Standard_Cell::Calculate_HPWL(){
 
     for(const auto &pair : FinFET_Pin_Map){
         string pin_name = pair.first;
-        cout << pin_name << endl;
-        double min_x = INT_MAX;
+        double min_x = DBL_MAX;
         double min_y = P_Active_Center_Height;
         double max_x = 0;
         double max_y = N_Active_Center_Height;
-        for(const auto finfet : pair.second){
+        for(const auto &finfet : pair.second){
+            assert((finfet->Type == N_Type || finfet->Type == P_Type) && "Invalid FinFET type");
+            assert(pin_name == finfet->Left_Diffusion_Pin || pin_name == finfet->Right_Diffusion_Pin);
+            if(pin_name == finfet->Left_Diffusion_Pin && pin_name == finfet->Right_Diffusion_Pin){
+                min_x = min({min_x, finfet->Left_Diffusion_X_Coordinate, finfet->Right_Diffusion_X_Coordinate});
+                max_x = max({max_x, finfet->Left_Diffusion_X_Coordinate, finfet->Right_Diffusion_X_Coordinate});
+            }
+            else if(pin_name == finfet->Left_Diffusion_Pin){
+                min_x = min({min_x, finfet->Left_Diffusion_X_Coordinate});
+                max_x = max({max_x, finfet->Left_Diffusion_X_Coordinate});
+            }
+            else if(pin_name == finfet->Right_Diffusion_Pin){
+                min_x = min({min_x, finfet->Right_Diffusion_X_Coordinate});
+                max_x = max({max_x, finfet->Right_Diffusion_X_Coordinate});
+            }
+            else abort();
+
             if(finfet->Type == N_Type){
-                assert(pin_name == finfet->Left_Diffusion_Pin || pin_name == finfet->Right_Diffusion_Pin);
-                if(pin_name == finfet->Left_Diffusion_Pin && pin_name == finfet->Right_Diffusion_Pin){
-                    min_x = min({min_x, finfet->Left_Diffusion_X_Coordinate, finfet->Right_Diffusion_X_Coordinate});
-                    max_x = max({max_x, finfet->Left_Diffusion_X_Coordinate, finfet->Right_Diffusion_X_Coordinate});
-                }
-                else if(pin_name == finfet->Left_Diffusion_Pin){
-                    min_x = min({min_x, finfet->Left_Diffusion_X_Coordinate});
-                    max_x = max({max_x, finfet->Left_Diffusion_X_Coordinate});
-                }
-                else if(pin_name == finfet->Right_Diffusion_Pin){
-                    min_x = min({min_x, finfet->Right_Diffusion_X_Coordinate});
-                    max_x = max({max_x, finfet->Right_Diffusion_X_Coordinate});
-                }
-                else abort();
                 min_y = min({min_y, N_Active_Center_Height});
                 max_y = max({max_y, N_Active_Center_Height});
             }
             else if(finfet->Type == P_Type){
-                assert(pin_name == finfet->Left_Diffusion_Pin || pin_name == finfet->Right_Diffusion_Pin);
-                if(pin_name == finfet->Left_Diffusion_Pin && pin_name == finfet->Right_Diffusion_Pin){
-                    min_x = min({min_x, finfet->Left_Diffusion_X_Coordinate, finfet->Right_Diffusion_X_Coordinate});
-                    max_x = max({max_x, finfet->Left_Diffusion_X_Coordinate, finfet->Right_Diffusion_X_Coordinate});
-                }
-                else if(pin_name == finfet->Left_Diffusion_Pin){
-                    min_x = min({min_x, finfet->Left_Diffusion_X_Coordinate});
-                    max_x = max({max_x, finfet->Left_Diffusion_X_Coordinate});
-                }
-                else if(pin_name == finfet->Right_Diffusion_Pin){
-                    min_x = min({min_x, finfet->Right_Diffusion_X_Coordinate});
-                    max_x = max({max_x, finfet->Right_Diffusion_X_Coordinate});
-                }
-                else abort();
                 min_y = min({min_y, P_Active_Center_Height});
                 max_y = max({max_y, P_Active_Center_Height});
             }

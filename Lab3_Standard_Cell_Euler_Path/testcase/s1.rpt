@@ -1,5 +1,0 @@
-1971
-M8 Dummy M5 Dummy M6 Dummy M7 
-Y D VDD Dummy net2 A VDD Dummy net3 B net2 Dummy Y C net3 
-M4 Dummy M1 Dummy M2 Dummy M3 
-Y D net1 Dummy net1 A VSS Dummy net1 B VSS Dummy net1 C VSS 
