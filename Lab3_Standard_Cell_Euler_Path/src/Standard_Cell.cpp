@@ -164,8 +164,8 @@ void Standard_Cell::Init_Poly_Sequence(){
         Poly_Sequence.emplace_back(finfet->Gate);
     }
     // Should add these 2 line when release
-    // srand(time(NULL));
-    // random_shuffle(Poly_Sequence.begin(), Poly_Sequence.end());
+    srand(time(NULL));
+    random_shuffle(Poly_Sequence.begin(), Poly_Sequence.end());
     cout << "########### Gate Seq ###########" << endl;
     for(const auto &gate : Poly_Sequence){
         cout << gate << " ";
@@ -209,30 +209,29 @@ void Standard_Cell::Init_Poly_Sequence(){
         assert(entry.second.size() == 0);
     }
 
-    for(const auto &pair : Layout){
-        FinFET *PMOS = pair.first;
-        FinFET *NMOS = pair.second;
-        if(PMOS->Name == "Dummy" && NMOS->Name == "Dummy") continue;
-        assert(PMOS->Gate == NMOS->Gate);
-        cout << PMOS->Gate << endl;
-        cout << PMOS->Left_Diffusion_Pin << " " << PMOS->Gate << " " << PMOS->Right_Diffusion_Pin << endl;
-        cout << NMOS->Left_Diffusion_Pin << " " << NMOS->Gate << " " << NMOS->Right_Diffusion_Pin << endl;
-    }
+    // for(const auto &pair : Layout){
+    //     FinFET *PMOS = pair.first;
+    //     FinFET *NMOS = pair.second;
+    //     if(PMOS->Name == "Dummy" && NMOS->Name == "Dummy") continue;
+    //     assert(PMOS->Gate == NMOS->Gate);
+    //     cout << PMOS->Gate << endl;
+    //     cout << PMOS->Left_Diffusion_Pin << " " << PMOS->Gate << " " << PMOS->Right_Diffusion_Pin << endl;
+    //     cout << NMOS->Left_Diffusion_Pin << " " << NMOS->Gate << " " << NMOS->Right_Diffusion_Pin << endl;
+    // }
 }
 
 double Standard_Cell::Calculate_HPWL(){
-    double hpwl = 0;
-
+    // Calculate all pin coordinate
     for(auto it = Layout.begin(); it != Layout.end(); ++it){
-        FinFET *PMOS = (*it).first;
-        FinFET *NMOS = (*it).second;
+        FinFET *PMOS = it->first;
+        FinFET *NMOS = it->second;
 
         // Dummy FinFET
         if(PMOS->Type == Dummy && NMOS->Type == Dummy){
             continue;
         }
 
-        // Left Edge
+        // Left Edge: Extend the left active area
         if(it == Layout.begin()){
             PMOS->Gate_X_Coordinate = GATE_ACTIVE_EXTENSION + GATE_WIDTH / 2.0;
             NMOS->Gate_X_Coordinate = GATE_ACTIVE_EXTENSION + GATE_WIDTH / 2.0;
@@ -240,18 +239,17 @@ double Standard_Cell::Calculate_HPWL(){
             NMOS->Left_Diffusion_X_Coordinate = NMOS->Gate_X_Coordinate - (GATE_WIDTH + GATE_ACTIVE_EXTENSION) / 2.0;
             PMOS->Right_Diffusion_X_Coordinate = PMOS->Gate_X_Coordinate + (GATE_WIDTH + GATE_SPACING) / 2.0;
             NMOS->Right_Diffusion_X_Coordinate = NMOS->Gate_X_Coordinate + (GATE_WIDTH + GATE_SPACING) / 2.0;
-            continue;
         }
         
-        // Right Edge
+        // Right Edge: Expand the right active area
         else if(next(it) == Layout.end()){
             auto prev_it = prev(it);
-            FinFET *prev_PMOS = (*prev_it).first;
-            FinFET *prev_NMOS = (*prev_it).second;
+            FinFET *prev_PMOS = prev_it->first;
+            FinFET *prev_NMOS = prev_it->second;
             if(prev_PMOS->Type == Dummy && prev_NMOS->Type == Dummy){
                 auto prev_prev_it = prev(prev_it);
-                FinFET *prev_prev_PMOS = (*prev_prev_it).first;
-                FinFET *prev_prev_NMOS = (*prev_prev_it).second;
+                FinFET *prev_prev_PMOS = prev_prev_it->first;
+                FinFET *prev_prev_NMOS = prev_prev_it->second;
                 assert(prev_prev_PMOS->Gate_X_Coordinate == prev_prev_NMOS->Gate_X_Coordinate);
                 double prev_finfet_poly_x = prev_prev_PMOS->Gate_X_Coordinate;
                 PMOS->Gate_X_Coordinate = prev_finfet_poly_x + (GATE_SPACING + GATE_WIDTH) * 3.0;
@@ -270,9 +268,9 @@ double Standard_Cell::Calculate_HPWL(){
                 PMOS->Right_Diffusion_X_Coordinate = PMOS->Gate_X_Coordinate + (GATE_WIDTH + GATE_ACTIVE_EXTENSION) / 2.0;
                 NMOS->Right_Diffusion_X_Coordinate = NMOS->Gate_X_Coordinate + (GATE_WIDTH + GATE_ACTIVE_EXTENSION) / 2.0;
             }
-            continue;
         }
         
+        // General case
         else{
             auto prev_it = prev(it);
             FinFET *prev_PMOS = (*prev_it).first;
@@ -311,6 +309,8 @@ double Standard_Cell::Calculate_HPWL(){
     }
     cout << endl;
 
+    // Calculate hpwl for each net
+    double hpwl = 0;
     for(const auto &pair : FinFET_Pin_Map){
         string pin_name = pair.first;
         double min_x = DBL_MAX;
