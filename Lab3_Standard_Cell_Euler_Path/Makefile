@@ -31,10 +31,10 @@ check:
 	$(CHECKCC) $(CHECKFLAGS) time ./$(TARGET) testcase/NOR2.sp testcase/NOR2.rpt
 
 NOR2:
-	./$(TARGET) testcase/NOR2.sp testcase/NOR2.rpt
+	./$(TARGET) testcase/NOR2.sp testcase/NOR2.rpt > log
 
 NAND4:
-	./$(TARGET) testcase/NAND4.sp testcase/NAND4.rpt
+	./$(TARGET) testcase/NAND4.sp testcase/NAND4.rpt > log
 
 s1:
 	./$(TARGET) testcase/s1.sp testcase/s1.rpt
@@ -43,7 +43,10 @@ s2:
 	./$(TARGET) testcase/s2.sp testcase/s2.rpt
 
 s3:
-	./$(TARGET) testcase/ASYNC_DFFHx1_ASAP7_75t_R.sp testcase/s3.rpt
+	./$(TARGET) testcase/ASYNC_DFFHx1_ASAP7_75t_R.sp testcase/s3.rpt > log
+
+s4:
+	./$(TARGET) testcase/case7.sp testcase/s4.rpt
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) testcase/*.rpt
+	rm -rf $(OBJDIR) $(TARGET) testcase/*.rpt log

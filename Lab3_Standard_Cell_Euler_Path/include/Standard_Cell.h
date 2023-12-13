@@ -5,6 +5,7 @@
 #include "FinFET.h"
 #include "Design_Rule.h"
 #include "Random_Number_Generator.h"
+#include "Util.h"
 using namespace std;
 
 class Standard_Cell{
@@ -22,7 +23,14 @@ class Standard_Cell{
         double N_Active_Width;
         double P_Active_Center_Height;
         double N_Active_Center_Height;
+        Random_Number_Generator *rng;
 
+        // SA Parameter
+        double Temperature;
+        double HPWL;
+
+        // Timing
+        chrono::steady_clock::time_point StartTime;
 
         // Constructor & Destructor
         Standard_Cell();
@@ -40,6 +48,13 @@ class Standard_Cell{
         void Init_Poly_Sequence();
         double Calculate_HPWL();
         void Simulated_Annealing();
+
+        //Operations for simulated annealing
+        bool Operation1();  // Swap DS in PMOS
+        bool Operation2();  // Swap DS in NMOS
+        bool Operation3();  // Swap 2 pair of PNMOS
+        
+        void Remove_Dummy();
 };
 
 #endif
