@@ -98,16 +98,48 @@ void Standard_Cell::Spice_Parser(ifstream &fin){
 }
 
 void Standard_Cell::Dump(ofstream &fout){
-    fout << Calculate_HPWL() << endl;
-    for(const auto &pair : Layout){
+    fout << HPWL << endl;
+    
+    // Dummy Insertion
+    list<pair<FinFET *, FinFET *>> Layout_Copy = Layout;
+    for(auto it = Layout_Copy.begin(); it != Layout_Copy.end(); ++it){
+        if(next(it) == Layout_Copy.end()) break;
+        it = Layout_Copy.insert(next(it), make_pair(new FinFET(), new FinFET()));
+    }
+
+    // Remove Dummy
+    for(auto it = Layout_Copy.begin(); it != Layout_Copy.end();){
+        FinFET *PMOS = it->first;
+        FinFET *NMOS = it->second;
+
+        if(PMOS->Type == Dummy && NMOS->Type == Dummy){
+            auto prev_it = prev(it);
+            auto next_it = next(it);
+            FinFET *prev_PMOS = prev_it->first;
+            FinFET *next_PMOS = next_it->first;
+            FinFET *prev_NMOS = prev_it->second;
+            FinFET *next_NMOS = next_it->second;
+            if(prev_PMOS->Type == Dummy || next_PMOS->Type == Dummy) continue;
+            assert(prev_PMOS->Type == P_Type && prev_NMOS->Type == N_Type);
+            assert(next_PMOS->Type == P_Type && next_NMOS->Type == N_Type);
+            bool P_Match = prev_PMOS->Right_Diffusion_Pin == next_PMOS->Left_Diffusion_Pin;
+            bool N_Match = prev_NMOS->Right_Diffusion_Pin == next_NMOS->Left_Diffusion_Pin;
+            if(P_Match && N_Match){
+                it = Layout_Copy.erase(it);
+            }
+        }
+        it++;
+    }
+
+    for(const auto &pair : Layout_Copy){
         FinFET *PMOS = pair.first;
         fout << PMOS->Name << " ";
     }
     fout << endl;
 
-    for(auto it = Layout.begin(); it != Layout.end(); ++it){
+    for(auto it = Layout_Copy.begin(); it != Layout_Copy.end(); ++it){
         FinFET *PMOS = (*it).first;
-        if(it == Layout.begin()){
+        if(it == Layout_Copy.begin()){
             fout << PMOS->Left_Diffusion_Pin << " " << PMOS->Gate << " " << PMOS->Right_Diffusion_Pin << " ";
             continue;
         }
@@ -128,15 +160,15 @@ void Standard_Cell::Dump(ofstream &fout){
     }
     fout << endl;
 
-    for(const auto &pair : Layout){
+    for(const auto &pair : Layout_Copy){
         FinFET *NMOS = pair.second;
         fout << NMOS->Name << " ";
     }
     fout << endl;
 
-    for(auto it = Layout.begin(); it != Layout.end(); ++it){
+    for(auto it = Layout_Copy.begin(); it != Layout_Copy.end(); ++it){
         FinFET *NMOS = (*it).second;
-        if(it == Layout.begin()){
+        if(it == Layout_Copy.begin()){
             fout << NMOS->Left_Diffusion_Pin << " " << NMOS->Gate << " " << NMOS->Right_Diffusion_Pin << " ";
             continue;
         }
@@ -160,9 +192,8 @@ void Standard_Cell::Dump(ofstream &fout){
 
 void Standard_Cell::Run(){
     Init_Poly_Sequence();
-    Simulated_Annealing();
-    Remove_Dummy();
     HPWL = Calculate_HPWL();
+    Simulated_Annealing();
 }
 
 double Standard_Cell::Get_HPWL(){
@@ -179,24 +210,11 @@ void Standard_Cell::Init_Poly_Sequence(){
     // Should add these 2 line when release
     srand(time(nullptr));
     random_shuffle(Poly_Sequence.begin(), Poly_Sequence.end());
-    // cout << "########### Gate Seq ###########" << endl;
-    // for(const auto &gate : Poly_Sequence){
-    //     cout << gate << " ";
-    // }
-    // cout << endl;
-
-    for(size_t i = 0; i < Poly_Sequence.size(); i++){
-        Poly_Sequence_With_Dummy.emplace_back(Poly_Sequence[i]);
-        if(i != Poly_Sequence.size() - 1){
-            Poly_Sequence_With_Dummy.emplace_back("Dummy");
-        }
+    cout << "########### Gate Seq ###########" << endl;
+    for(const auto &gate : Poly_Sequence){
+        cout << gate << " ";
     }
-
-    // cout << "########### Gate Seq With Dummy ###########" << endl;
-    // for(const auto &gate : Poly_Sequence_With_Dummy){
-    //     cout << gate << " ";
-    // }
-    // cout << endl;
+    cout << endl;
 
     // Init the layout
     // Map gate to place the source and drain
@@ -215,16 +233,12 @@ void Standard_Cell::Init_Poly_Sequence(){
         }
     }
 
-    for(const auto &gate : Poly_Sequence_With_Dummy){
-        if(gate != "Dummy"){
-            Layout.push_back(make_pair(P_FinFET_Poly_Map_Copy[gate].front(), N_FinFET_Poly_Map_Copy[gate].front()));
-            P_FinFET_Poly_Map_Copy[gate].erase(P_FinFET_Poly_Map_Copy[gate].begin());
-            N_FinFET_Poly_Map_Copy[gate].erase(N_FinFET_Poly_Map_Copy[gate].begin());
-        }
-        else{
-            Layout.push_back(make_pair(new FinFET(), new FinFET()));
-        }
+    for(const auto &gate : Poly_Sequence){
+        Layout.push_back(make_pair(P_FinFET_Poly_Map_Copy[gate].front(), N_FinFET_Poly_Map_Copy[gate].front()));
+        P_FinFET_Poly_Map_Copy[gate].erase(P_FinFET_Poly_Map_Copy[gate].begin());
+        N_FinFET_Poly_Map_Copy[gate].erase(N_FinFET_Poly_Map_Copy[gate].begin());
     }
+
     // Check if all vectors in the unordered maps have size 0
     for (const auto &entry : N_FinFET_Poly_Map_Copy) {
         assert(entry.second.size() == 0);
@@ -233,32 +247,60 @@ void Standard_Cell::Init_Poly_Sequence(){
     for (const auto &entry : P_FinFET_Poly_Map_Copy) {
         assert(entry.second.size() == 0);
     }
-    HPWL = Calculate_HPWL();
-    // cout << "Init HPWL: " << HPWL << endl;
-    // for(const auto &pair : Layout){
-    //     FinFET *PMOS = pair.first;
-    //     FinFET *NMOS = pair.second;
-    //     if(PMOS->Name == "Dummy" && NMOS->Name == "Dummy") continue;
-    //     assert(PMOS->Gate == NMOS->Gate);
-    //     cout << PMOS->Gate << endl;
-    //     cout << PMOS->Left_Diffusion_Pin << " " << PMOS->Gate << " " << PMOS->Right_Diffusion_Pin << endl;
-    //     cout << NMOS->Left_Diffusion_Pin << " " << NMOS->Gate << " " << NMOS->Right_Diffusion_Pin << endl;
-    // }
+
+    // Check for the init Layout list
+    for(const auto &pair : Layout){
+        FinFET *PMOS = pair.first;
+        FinFET *NMOS = pair.second;
+        assert(PMOS->Gate == NMOS->Gate);
+        cout << PMOS->Gate << endl;
+        cout << PMOS->Left_Diffusion_Pin << " " << PMOS->Gate << " " << PMOS->Right_Diffusion_Pin << endl;
+        cout << NMOS->Left_Diffusion_Pin << " " << NMOS->Gate << " " << NMOS->Right_Diffusion_Pin << endl;
+    }
 }
 
 double Standard_Cell::Calculate_HPWL(){
-    // Calculate all pin coordinate
-    for(auto it = Layout.begin(); it != Layout.end(); ++it){
+    // Dummy Insertion
+    list<pair<FinFET *, FinFET *>> Layout_Copy = Layout;
+    for(auto it = Layout_Copy.begin(); it != Layout_Copy.end(); ++it){
+        if(next(it) == Layout_Copy.end()) break;
+        it = Layout_Copy.insert(next(it), make_pair(new FinFET(), new FinFET()));
+    }
+
+    // Remove Dummy
+    for(auto it = Layout_Copy.begin(); it != Layout_Copy.end();){
         FinFET *PMOS = it->first;
         FinFET *NMOS = it->second;
 
-        // Dummy FinFET
         if(PMOS->Type == Dummy && NMOS->Type == Dummy){
-            continue;
+            auto prev_it = prev(it);
+            auto next_it = next(it);
+            FinFET *prev_PMOS = prev_it->first;
+            FinFET *next_PMOS = next_it->first;
+            FinFET *prev_NMOS = prev_it->second;
+            FinFET *next_NMOS = next_it->second;
+            if(prev_PMOS->Type == Dummy || next_PMOS->Type == Dummy) continue;
+            assert(prev_PMOS->Type == P_Type && prev_NMOS->Type == N_Type);
+            assert(next_PMOS->Type == P_Type && next_NMOS->Type == N_Type);
+            bool P_Match = prev_PMOS->Right_Diffusion_Pin == next_PMOS->Left_Diffusion_Pin;
+            bool N_Match = prev_NMOS->Right_Diffusion_Pin == next_NMOS->Left_Diffusion_Pin;
+            if(P_Match && N_Match){
+                it = Layout_Copy.erase(it);
+            }
         }
+        it++;
+    }
+
+    // Calculate pin coordinate
+    for(auto it = Layout_Copy.begin(); it != Layout_Copy.end(); ++it){
+        FinFET *PMOS = it->first;
+        FinFET *NMOS = it->second;
+        
+        // Dummy FinFET
+        if(PMOS->Type == Dummy && NMOS->Type == Dummy) continue;
 
         // Left Edge: Extend the left active area
-        if(it == Layout.begin()){
+        if(it == Layout_Copy.begin()){
             PMOS->Gate_X_Coordinate = GATE_ACTIVE_EXTENSION + GATE_WIDTH / 2.0;
             NMOS->Gate_X_Coordinate = GATE_ACTIVE_EXTENSION + GATE_WIDTH / 2.0;
             PMOS->Left_Diffusion_X_Coordinate = PMOS->Gate_X_Coordinate - (GATE_WIDTH + GATE_ACTIVE_EXTENSION) / 2.0;
@@ -266,9 +308,9 @@ double Standard_Cell::Calculate_HPWL(){
             PMOS->Right_Diffusion_X_Coordinate = PMOS->Gate_X_Coordinate + (GATE_WIDTH + GATE_SPACING) / 2.0;
             NMOS->Right_Diffusion_X_Coordinate = NMOS->Gate_X_Coordinate + (GATE_WIDTH + GATE_SPACING) / 2.0;
         }
-        
+
         // Right Edge: Expand the right active area
-        else if(next(it) == Layout.end()){
+        else if(next(it) == Layout_Copy.end()){
             auto prev_it = prev(it);
             FinFET *prev_PMOS = prev_it->first;
             FinFET *prev_NMOS = prev_it->second;
@@ -295,7 +337,7 @@ double Standard_Cell::Calculate_HPWL(){
                 NMOS->Right_Diffusion_X_Coordinate = NMOS->Gate_X_Coordinate + (GATE_WIDTH + GATE_ACTIVE_EXTENSION) / 2.0;
             }
         }
-        
+
         // General case
         else{
             auto prev_it = prev(it);
@@ -323,17 +365,8 @@ double Standard_Cell::Calculate_HPWL(){
                 PMOS->Right_Diffusion_X_Coordinate = PMOS->Gate_X_Coordinate + (GATE_WIDTH + GATE_SPACING) / 2.0;
                 NMOS->Right_Diffusion_X_Coordinate = NMOS->Gate_X_Coordinate + (GATE_WIDTH + GATE_SPACING) / 2.0;
             }
-            continue;
         }
     }
-
-    // for(auto it = Layout.begin(); it != Layout.end(); ++it){
-    //     FinFET *PMOS = (*it).first;
-    //     FinFET *NMOS = (*it).second;
-    //     assert(PMOS->Gate_X_Coordinate == NMOS->Gate_X_Coordinate);
-    //     cout << PMOS->Gate_X_Coordinate << " ";
-    // }
-    // cout << endl;
 
     // Calculate hpwl for each net
     double hpwl = 0;
@@ -376,46 +409,37 @@ double Standard_Cell::Calculate_HPWL(){
 }
 
 void Standard_Cell::Simulated_Annealing(){
-    bool Convergence_Flag = false;
-    double Previous_HPWL = Calculate_HPWL();
-    int Num_Consecutive_Temperature_Unchanged = 0;
-    while(Temperature > TERMINATE_TEMPERATURE && !Convergence_Flag){
+    while(Temperature > TERMINATE_TEMPERATURE){
         for(size_t i = 0; i < STEPS_PER_TEMPERATURE; i++){
-            int Which_Operation = rng->Generate_Random_Integer(2);
-            //bool sa_result;
+            int Which_Operation = rng->Generate_Random_Integer(3);
+            bool sa_result;
             switch(Which_Operation){
                 case OPERATION1:
-                    /*sa_result = */SA_Operation1();
-                    //cout << ((sa_result == ACCEPT) ? "[M1]Accept" : "[M1]Reject ") << HPWL << endl;
+                    sa_result = SA_Operation1();
+                    cout << ((sa_result == ACCEPT) ? "[M1]Accept " : "[M1]Reject ") << HPWL << endl;
                     break;
                 case OPERATION2:
-                    /*sa_result = */SA_Operation2();
-                    //cout << ((sa_result == ACCEPT) ? "[M2]Accept" : "[M2]Reject ") << HPWL << endl;
+                    sa_result = SA_Operation2();
+                    cout << ((sa_result == ACCEPT) ? "[M2]Accept " : "[M2]Reject ") << HPWL << endl;
                     break;
                 case OPERATION3:
-                    /*sa_result = */SA_Operation3();
-                    //cout << ((sa_result == ACCEPT) ? "[M3]Accept" : "[M3]Reject ") << HPWL << endl;
+                    sa_result = SA_Operation3();
+                    cout << ((sa_result == ACCEPT) ? "[M3]Accept " : "[M3]Reject ") << HPWL << endl;
+                    break;
+                case OPERATION4:
+                    sa_result = SA_Operation4();
+                    cout << ((sa_result == ACCEPT) ? "[M4]Accept " : "[M4]Reject ") << HPWL << endl;
                     break;
                 default:
                     abort();
             }
-        }
-        if(HPWL == Previous_HPWL){
-            Num_Consecutive_Temperature_Unchanged++;
-            if(Num_Consecutive_Temperature_Unchanged >= MAX_CONSECUTIVE_TEMPERATURN_UNCHANGE){
-                cout << "early break" << endl;
-                Convergence_Flag = true;
-            }
-        }
-        else{
-            Num_Consecutive_Temperature_Unchanged = 0;
-            Previous_HPWL = HPWL;
         }
         //cout << Temperature << " " << HPWL << endl;
         Temperature = (Temperature > CRITICAL_TEMPERATURE) ? Temperature * TEMPERATURE_DECREASING_FAST_RATE : Temperature * TEMPERATURE_DECREASING_SLOW_RATE;
     }
 }
 
+//Operations for simulated annealing
 bool Standard_Cell::SA_Operation1(){
     size_t index = rng->Generate_Random_Integer(P_FinFETs.size() - 1);
     assert(index < P_FinFETs.size() && index >= 0);
@@ -517,27 +541,63 @@ bool Standard_Cell::SA_Operation3(){
     }
 }
 
-void Standard_Cell::Remove_Dummy(){
-    for(auto it = Layout.begin(); it != Layout.end();){
-        FinFET *PMOS = it->first;
-        FinFET *NMOS = it->second;
-
-        if(PMOS->Type == Dummy && NMOS->Type == Dummy){
-            auto prev_it = prev(it);
-            auto next_it = next(it);
-            FinFET *prev_PMOS = prev_it->first;
-            FinFET *next_PMOS = next_it->first;
-            FinFET *prev_NMOS = prev_it->second;
-            FinFET *next_NMOS = next_it->second;
-            if(prev_PMOS->Type == Dummy || next_PMOS->Type == Dummy) continue;
-            assert(prev_PMOS->Type == P_Type && prev_NMOS->Type == N_Type);
-            assert(next_PMOS->Type == P_Type && next_NMOS->Type == N_Type);
-            bool P_Match = prev_PMOS->Right_Diffusion_Pin == next_PMOS->Left_Diffusion_Pin;
-            bool N_Match = prev_NMOS->Right_Diffusion_Pin == next_NMOS->Left_Diffusion_Pin;
-            if(P_Match && N_Match){
-                it = Layout.erase(it);
-            }
+bool Standard_Cell::SA_Operation4(){
+    vector<string> multi_poly_names;
+    for(const auto &pair : P_FinFET_Poly_Map){
+        if(pair.second.size() > 1){
+            multi_poly_names.emplace_back(pair.first);
         }
-        it++;
+    }
+    if(multi_poly_names.size() == 0) return REJECT;
+    size_t index = rng->Generate_Random_Integer(multi_poly_names.size() - 1);
+    string poly_name = multi_poly_names[index];
+    const vector<FinFET *> &FinFET_vec = P_FinFET_Poly_Map[poly_name];
+    size_t index1 = rng->Generate_Random_Integer(FinFET_vec.size() - 1);
+    size_t index2 = rng->Generate_Random_Integer(FinFET_vec.size() - 1);
+    if(index1 == index2) return REJECT;
+
+    FinFET *PMOS1 = FinFET_vec[index1];
+    FinFET *PMOS2 = FinFET_vec[index2];
+
+    auto it1 = Layout.end();
+    auto it2 = Layout.end();
+    // Find positions of PMOS1 and PMOS2
+    for (auto it = Layout.begin(); it != Layout.end(); ++it){
+        if (it->first == PMOS1) {
+            it1 = it;
+            if (it2 != Layout.end())
+                break;  // Break if both PMOS1 and PMOS2 are found
+        }
+        if (it->first == PMOS2) {
+            it2 = it;
+            if (it1 != Layout.end())
+                break;  // Break if both PMOS1 and PMOS2 are found
+        }
+    }
+
+    swap(it1->first, it2->first);
+    double new_hpwl = Calculate_HPWL();
+
+    // Better Move
+    if(new_hpwl <= HPWL){
+        HPWL = new_hpwl;
+        return ACCEPT;
+    }
+
+    // Worse but legal move
+    else{
+        double delta_hpwl = new_hpwl - HPWL;
+        double r = rng->Generate_Random_Float();
+
+        // Accept
+        if(r < exp(-1 * delta_hpwl / Temperature)){
+            HPWL = new_hpwl;
+            return ACCEPT;
+        }
+        else{
+            swap(it1->first, it2->first);
+            HPWL = Calculate_HPWL();
+            return REJECT;
+        }
     }
 }

@@ -1,7 +1,7 @@
 # ompiler & Linker settings
 CC = g++
-CFLAGS = -g -Wall -std=c++11 -pthread -O3 -DNDEBUG -I./include
-#CFLAGS = -g -Wall -std=c++11 -pthread -O3 -I./include
+#CFLAGS = -g -Wall -std=c++11 -pthread -O3 -DNDEBUG -I./include
+CFLAGS = -g -Wall -std=c++11 -pthread -O3 -I./include
 
 # Valgrind for memory issue
 CHECKCC = valgrind
@@ -49,7 +49,7 @@ s3:
 	./$(TARGET) testcase/ASYNC_DFFHx1_ASAP7_75t_R.sp testcase/s3.rpt
 
 s4:
-	./$(TARGET) testcase/case7.sp testcase/s4.rpt > log
+	./$(TARGET) testcase/case7.sp testcase/s4.rpt
 
 clean:
 	rm -rf $(OBJDIR) $(TARGET) testcase/*.rpt log

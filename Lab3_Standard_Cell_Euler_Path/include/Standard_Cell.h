@@ -56,8 +56,7 @@ class Standard_Cell{
         bool SA_Operation1();  // Swap DS in PMOS
         bool SA_Operation2();  // Swap DS in NMOS
         bool SA_Operation3();  // Swap 2 pair in both PMOS & NMOS
-
-        void Remove_Dummy();
+        bool SA_Operation4();  // Swap 2 PMOS with the same poly
 };
 
 #endif
