@@ -11,9 +11,3 @@ int main(int argc, char *argv[]){
     standard_cell.Dump(Rpt_File);
     return 0;
 }
-
-// int main(int argc, char *argv[]){
-//     Standard_Cell_Manager std_cell_manager(argv[1], argv[2]);
-//     std_cell_manager.Run_Thread();
-//     return 0;
-// }

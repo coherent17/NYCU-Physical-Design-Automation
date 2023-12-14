@@ -46,10 +46,16 @@ s2:
 	./$(TARGET) testcase/s2.sp testcase/s2.rpt
 
 s3:
-	./$(TARGET) testcase/ASYNC_DFFHx1_ASAP7_75t_R.sp testcase/s3.rpt
+	time ./$(TARGET) testcase/ASYNC_DFFHx1_ASAP7_75t_R.sp testcase/s3.rpt
 
 s4:
 	./$(TARGET) testcase/case7.sp testcase/s4.rpt
+
+s5:
+	time ./$(TARGET) testcase/dff_mtspc.sp testcase/s5.rpt
+
+s6:
+	time ./$(TARGET) testcase/XOR8.sp testcase/s6.rpt
 
 clean:
 	rm -rf $(OBJDIR) $(TARGET) testcase/*.rpt log

@@ -3,7 +3,7 @@
 Standard_Cell::Standard_Cell() : 
     Num_FinFETs(0),
     Temperature(ANNEALING_TEMPERATURE),
-    HPWL(0)
+    HPWL(DBL_MAX)
 {
     rng = new Random_Number_Generator();
     StartTime = chrono::steady_clock::now();
@@ -125,6 +125,8 @@ void Standard_Cell::Dump(ofstream &fout){
             bool P_Match = prev_PMOS->Right_Diffusion_Pin == next_PMOS->Left_Diffusion_Pin;
             bool N_Match = prev_NMOS->Right_Diffusion_Pin == next_NMOS->Left_Diffusion_Pin;
             if(P_Match && N_Match){
+                delete PMOS;
+                delete NMOS;
                 it = Layout_Copy.erase(it);
             }
         }
@@ -210,11 +212,11 @@ void Standard_Cell::Init_Poly_Sequence(){
     // Should add these 2 line when release
     srand(time(nullptr));
     random_shuffle(Poly_Sequence.begin(), Poly_Sequence.end());
-    cout << "########### Gate Seq ###########" << endl;
-    for(const auto &gate : Poly_Sequence){
-        cout << gate << " ";
-    }
-    cout << endl;
+    // cout << "########### Gate Seq ###########" << endl;
+    // for(const auto &gate : Poly_Sequence){
+    //     cout << gate << " ";
+    // }
+    // cout << endl;
 
     // Init the layout
     // Map gate to place the source and drain
@@ -249,14 +251,14 @@ void Standard_Cell::Init_Poly_Sequence(){
     }
 
     // Check for the init Layout list
-    for(const auto &pair : Layout){
-        FinFET *PMOS = pair.first;
-        FinFET *NMOS = pair.second;
-        assert(PMOS->Gate == NMOS->Gate);
-        cout << PMOS->Gate << endl;
-        cout << PMOS->Left_Diffusion_Pin << " " << PMOS->Gate << " " << PMOS->Right_Diffusion_Pin << endl;
-        cout << NMOS->Left_Diffusion_Pin << " " << NMOS->Gate << " " << NMOS->Right_Diffusion_Pin << endl;
-    }
+    // for(const auto &pair : Layout){
+    //     FinFET *PMOS = pair.first;
+    //     FinFET *NMOS = pair.second;
+    //     assert(PMOS->Gate == NMOS->Gate);
+    //     cout << PMOS->Gate << endl;
+    //     cout << PMOS->Left_Diffusion_Pin << " " << PMOS->Gate << " " << PMOS->Right_Diffusion_Pin << endl;
+    //     cout << NMOS->Left_Diffusion_Pin << " " << NMOS->Gate << " " << NMOS->Right_Diffusion_Pin << endl;
+    // }
 }
 
 double Standard_Cell::Calculate_HPWL(){
@@ -409,30 +411,44 @@ double Standard_Cell::Calculate_HPWL(){
 }
 
 void Standard_Cell::Simulated_Annealing(){
-    while(Temperature > TERMINATE_TEMPERATURE){
+    bool Convergence_Flag = false;
+    double previous_hpwl = HPWL;
+    int Num_Consecutive_Temperature_Unchanged = 0;
+    while(Temperature > TERMINATE_TEMPERATURE && !Convergence_Flag){
         for(size_t i = 0; i < STEPS_PER_TEMPERATURE; i++){
             int Which_Operation = rng->Generate_Random_Integer(3);
             bool sa_result;
             switch(Which_Operation){
                 case OPERATION1:
                     sa_result = SA_Operation1();
-                    cout << ((sa_result == ACCEPT) ? "[M1]Accept " : "[M1]Reject ") << HPWL << endl;
+                    //cout << ((sa_result == ACCEPT) ? "[M1]Accept " : "[M1]Reject ") << HPWL << endl;
                     break;
                 case OPERATION2:
                     sa_result = SA_Operation2();
-                    cout << ((sa_result == ACCEPT) ? "[M2]Accept " : "[M2]Reject ") << HPWL << endl;
+                    //cout << ((sa_result == ACCEPT) ? "[M2]Accept " : "[M2]Reject ") << HPWL << endl;
                     break;
                 case OPERATION3:
                     sa_result = SA_Operation3();
-                    cout << ((sa_result == ACCEPT) ? "[M3]Accept " : "[M3]Reject ") << HPWL << endl;
+                    //cout << ((sa_result == ACCEPT) ? "[M3]Accept " : "[M3]Reject ") << HPWL << endl;
                     break;
                 case OPERATION4:
                     sa_result = SA_Operation4();
-                    cout << ((sa_result == ACCEPT) ? "[M4]Accept " : "[M4]Reject ") << HPWL << endl;
+                    //cout << ((sa_result == ACCEPT) ? "[M4]Accept " : "[M4]Reject ") << HPWL << endl;
                     break;
                 default:
                     abort();
             }
+        }
+
+        if(HPWL == previous_hpwl){
+            Num_Consecutive_Temperature_Unchanged++;
+            if(Num_Consecutive_Temperature_Unchanged >= MAX_CONSECUTIVE_TEMPERATURN_UNCHANGE){
+                Convergence_Flag = true;
+            }
+        }
+        else{
+            Num_Consecutive_Temperature_Unchanged = 0;
+            previous_hpwl = HPWL;
         }
         //cout << Temperature << " " << HPWL << endl;
         Temperature = (Temperature > CRITICAL_TEMPERATURE) ? Temperature * TEMPERATURE_DECREASING_FAST_RATE : Temperature * TEMPERATURE_DECREASING_SLOW_RATE;
