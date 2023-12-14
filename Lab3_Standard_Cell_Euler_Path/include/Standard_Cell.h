@@ -32,6 +32,9 @@ class Standard_Cell{
         // Timing
         chrono::steady_clock::time_point StartTime;
 
+        // Memory Control
+        vector<pair<FinFET *, FinFET *>> Dummy_FinFET_Garbage_Collector;
+
         // Constructor & Destructor
         Standard_Cell();
         ~Standard_Cell();

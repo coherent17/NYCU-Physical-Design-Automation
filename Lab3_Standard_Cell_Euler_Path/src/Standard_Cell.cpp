@@ -95,6 +95,10 @@ void Standard_Cell::Spice_Parser(ifstream &fin){
     N_Active_Width = N_FinFETs.front()->Width;
     N_Active_Center_Height = N_Active_Width / 2.0;
     P_Active_Center_Height = N_Active_Width + ACTIVE_VERTICAL_SPACING + P_Active_Width / 2.0;
+
+    for(size_t i = 0; i < Num_FinFETs * 2; i++){
+        Dummy_FinFET_Garbage_Collector.emplace_back(make_pair(new FinFET(), new FinFET()));
+    }
 }
 
 void Standard_Cell::Dump(ofstream &fout){
@@ -266,7 +270,9 @@ double Standard_Cell::Calculate_HPWL(){
     list<pair<FinFET *, FinFET *>> Layout_Copy = Layout;
     for(auto it = Layout_Copy.begin(); it != Layout_Copy.end(); ++it){
         if(next(it) == Layout_Copy.end()) break;
-        it = Layout_Copy.insert(next(it), make_pair(new FinFET(), new FinFET()));
+        pair<FinFET *, FinFET *> Dummy_Pair = Dummy_FinFET_Garbage_Collector.front();
+        Dummy_FinFET_Garbage_Collector.erase(Dummy_FinFET_Garbage_Collector.begin());
+        it = Layout_Copy.insert(next(it), make_pair(Dummy_Pair.first, Dummy_Pair.second));
     }
 
     // Remove Dummy
@@ -287,6 +293,7 @@ double Standard_Cell::Calculate_HPWL(){
             bool P_Match = prev_PMOS->Right_Diffusion_Pin == next_PMOS->Left_Diffusion_Pin;
             bool N_Match = prev_NMOS->Right_Diffusion_Pin == next_NMOS->Left_Diffusion_Pin;
             if(P_Match && N_Match){
+                Dummy_FinFET_Garbage_Collector.emplace_back(make_pair(PMOS, NMOS));
                 it = Layout_Copy.erase(it);
             }
         }
@@ -407,6 +414,15 @@ double Standard_Cell::Calculate_HPWL(){
         }
         hpwl += (max_x - min_x) + (max_y - min_y);
     }
+
+    for(auto it = Layout_Copy.begin(); it != Layout_Copy.end(); ++it){
+        FinFET *PMOS = it->first;
+        FinFET *NMOS = it->second;
+        if(PMOS->Type == Dummy && NMOS->Type == Dummy){
+            Dummy_FinFET_Garbage_Collector.emplace_back(make_pair(PMOS, NMOS));
+        }
+    }
+
     return hpwl;
 }
 
