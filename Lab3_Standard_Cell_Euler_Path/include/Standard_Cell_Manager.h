@@ -14,6 +14,11 @@ class Standard_Cell_Manager{
         ifstream fin3;
         ifstream fin4;
         ifstream fin5;
+        ifstream fin6;
+        ifstream fin7;
+        ifstream fin8;
+        ifstream fin9;
+        ifstream fin10;
         ofstream fout;
 
     public:

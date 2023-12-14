@@ -455,6 +455,12 @@ void Standard_Cell::Simulated_Annealing(){
                     abort();
             }
         }
+        auto EndTime = chrono::steady_clock::now();
+        long long ElapsedTimeSeconds = chrono::duration_cast<chrono::seconds>(EndTime - StartTime).count();
+        if(ElapsedTimeSeconds > MAX_EXECUTION_TIME - BUFFER_TIME){
+            Convergence_Flag = true;
+            break;
+        }
 
         if(HPWL == previous_hpwl){
             Num_Consecutive_Temperature_Unchanged++;
