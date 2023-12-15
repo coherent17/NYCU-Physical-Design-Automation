@@ -155,8 +155,6 @@ void Standard_Cell::Dump(ofstream &fout){
         }
         auto prev_it = prev(it);
         FinFET *prev_PMOS = (*prev_it).first;
-        FinFET *prev_NMOS = (*prev_it).second;
-        assert((prev_PMOS->Type == Dummy && prev_NMOS->Type == Dummy) || (prev_PMOS->Type == P_Type && prev_NMOS->Type == N_Type));
         if(prev_PMOS->Type == Dummy){
             fout << PMOS->Left_Diffusion_Pin << " " << PMOS->Gate << " " << PMOS->Right_Diffusion_Pin << " ";
         }
@@ -183,9 +181,7 @@ void Standard_Cell::Dump(ofstream &fout){
             continue;
         }
         auto prev_it = prev(it);
-        FinFET *prev_PMOS = (*prev_it).first;
         FinFET *prev_NMOS = (*prev_it).second;
-        assert((prev_PMOS->Type == Dummy && prev_NMOS->Type == Dummy) || (prev_PMOS->Type == P_Type && prev_NMOS->Type == N_Type));
         if(prev_NMOS->Type == Dummy){
             fout << NMOS->Left_Diffusion_Pin << " " << NMOS->Gate << " " << NMOS->Right_Diffusion_Pin << " ";
         }
@@ -246,13 +242,13 @@ void Standard_Cell::Init_Poly_Sequence(){
     }
 
     // Check if all vectors in the unordered maps have size 0
-    for (const auto &entry : N_FinFET_Poly_Map_Copy) {
-        assert(entry.second.size() == 0);
-    }
+    // for (const auto &entry : N_FinFET_Poly_Map_Copy) {
+    //     assert(entry.second.size() == 0);
+    // }
 
-    for (const auto &entry : P_FinFET_Poly_Map_Copy) {
-        assert(entry.second.size() == 0);
-    }
+    // for (const auto &entry : P_FinFET_Poly_Map_Copy) {
+    //     assert(entry.second.size() == 0);
+    // }
 
     // Check for the init Layout list
     // for(const auto &pair : Layout){
@@ -326,8 +322,6 @@ double Standard_Cell::Calculate_HPWL(){
             if(prev_PMOS->Type == Dummy && prev_NMOS->Type == Dummy){
                 auto prev_prev_it = prev(prev_it);
                 FinFET *prev_prev_PMOS = prev_prev_it->first;
-                FinFET *prev_prev_NMOS = prev_prev_it->second;
-                assert(prev_prev_PMOS->Gate_X_Coordinate == prev_prev_NMOS->Gate_X_Coordinate);
                 double prev_finfet_poly_x = prev_prev_PMOS->Gate_X_Coordinate;
                 PMOS->Gate_X_Coordinate = prev_finfet_poly_x + (GATE_SPACING + GATE_WIDTH) * 3.0;
                 NMOS->Gate_X_Coordinate = prev_finfet_poly_x + (GATE_SPACING + GATE_WIDTH) * 3.0;
@@ -354,9 +348,7 @@ double Standard_Cell::Calculate_HPWL(){
             FinFET *prev_NMOS = (*prev_it).second;
             if(prev_PMOS->Type == Dummy && prev_NMOS->Type == Dummy){
                 auto prev_prev_it = prev(prev_it);
-                FinFET *prev_prev_PMOS = (*prev_prev_it).first;
-                FinFET *prev_prev_NMOS = (*prev_prev_it).second;
-                assert(prev_prev_PMOS->Gate_X_Coordinate == prev_prev_NMOS->Gate_X_Coordinate);
+                FinFET *prev_prev_PMOS = prev_prev_it->first;
                 double prev_finfet_poly_x = prev_prev_PMOS->Gate_X_Coordinate;
                 PMOS->Gate_X_Coordinate = prev_finfet_poly_x + (GATE_SPACING + GATE_WIDTH) * 3.0;
                 NMOS->Gate_X_Coordinate = prev_finfet_poly_x + (GATE_SPACING + GATE_WIDTH) * 3.0;
@@ -433,22 +425,22 @@ void Standard_Cell::Simulated_Annealing(){
     while(Temperature > TERMINATE_TEMPERATURE && !Convergence_Flag){
         for(size_t i = 0; i < STEPS_PER_TEMPERATURE; i++){
             int Which_Operation = rng->Generate_Random_Integer(3);
-            bool sa_result;
+            //bool sa_result;
             switch(Which_Operation){
                 case OPERATION1:
-                    sa_result = SA_Operation1();
+                    /*sa_result = */SA_Operation1();
                     //cout << ((sa_result == ACCEPT) ? "[M1]Accept " : "[M1]Reject ") << HPWL << endl;
                     break;
                 case OPERATION2:
-                    sa_result = SA_Operation2();
+                    /*sa_result = */SA_Operation2();
                     //cout << ((sa_result == ACCEPT) ? "[M2]Accept " : "[M2]Reject ") << HPWL << endl;
                     break;
                 case OPERATION3:
-                    sa_result = SA_Operation3();
+                    /*sa_result = */SA_Operation3();
                     //cout << ((sa_result == ACCEPT) ? "[M3]Accept " : "[M3]Reject ") << HPWL << endl;
                     break;
                 case OPERATION4:
-                    sa_result = SA_Operation4();
+                    /*sa_result = */SA_Operation4();
                     //cout << ((sa_result == ACCEPT) ? "[M4]Accept " : "[M4]Reject ") << HPWL << endl;
                     break;
                 default:
