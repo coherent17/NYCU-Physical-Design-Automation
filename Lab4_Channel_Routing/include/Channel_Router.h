@@ -2,15 +2,16 @@
 #define _CHANNEL_ROUTER_H_
 
 #include <bits/stdc++.h>
-#include "HCG.h"
+#include "Util.h"
 using namespace std;
 
 class Channel_Router{
     private:
-        vector<string> Top_Boundary;
-        vector<string> Bottom_Boundary;
-        unordered_map<string, pair<int, int>> Intervals;
-        HCG hcg;
+        int Max_Pin_Number;
+        vector<int> Top_Boundary;
+        vector<int> Bottom_Boundary;
+        vector<pair<int, int>> Boundary;
+        unordered_map<int, pair<int, int>> Intervals;
 
     public:
         // Constructor & Destructor
