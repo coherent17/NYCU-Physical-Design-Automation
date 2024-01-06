@@ -66,9 +66,37 @@ void Channel_Router::Parser(ifstream &fin){
         }
     }
 
-    for(int i = 1; i <= Max_Pin_Number; i++){
-        cout << i << ": " << Intervals[i].first << " " << Intervals[i].second << endl;
+    // Sort the intervals
+
+    auto interval_cmp = [](const pair<int, pair<int, int>> &interval1, const pair<int, pair<int, int>> &interval2){
+        
+        int interval1_start = interval1.second.first;
+        int interval1_end = interval1.second.second;
+        int interval2_start = interval2.second.first;
+        int interval2_end = interval2.second.second;
+        
+        if(interval1_start < interval2_start) return true;
+        else if(interval1_start > interval2_start) return false;
+        else{
+            return interval1_end < interval2_end;
+        }
+    };
+
+    vector<pair<int, pair<int, int>>> intervals_vec;
+    for(const auto &pair : Intervals){
+        intervals_vec.emplace_back(pair);
     }
+    
+    sort(intervals_vec.begin(), intervals_vec.end(), interval_cmp);
+
+    for(const auto &pair : intervals_vec){
+        cout << pair.first << ": " << pair.second.first << " " << pair.second.second << endl;
+        Sorted_Intervals[pair.first] = pair.second;
+    }
+
+    // for(int i = 1; i <= Max_Pin_Number; i++){
+    //     cout << i << ": " << Sorted_Intervals[i].first << " " << Sorted_Intervals[i].second << endl;
+    // }
 }
 
 void Channel_Router::Dump(ofstream &fout){

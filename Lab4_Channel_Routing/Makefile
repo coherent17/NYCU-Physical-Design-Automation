@@ -37,5 +37,8 @@ s1:
 s2:
 	time ./$(TARGET) testcase/text_sample.in testcase/sample.out
 
+s3:
+	time ./$(TARGET) testcase/test5.in testcase/sample.out
+
 clean:
 	rm -rf $(OBJDIR) $(TARGET) testcase/*.out

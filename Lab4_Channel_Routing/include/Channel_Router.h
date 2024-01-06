@@ -12,6 +12,7 @@ class Channel_Router{
         vector<int> Bottom_Boundary;
         vector<pair<int, int>> Boundary;
         unordered_map<int, pair<int, int>> Intervals;
+        unordered_map<int, pair<int, int>> Sorted_Intervals;
 
     public:
         // Constructor & Destructor
