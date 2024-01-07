@@ -16,7 +16,8 @@ class Graph{
         // Graph Operation
         void Init_Graph(int n);
         void Add_Edge(int src, int dest);
-        void Delete_Edge(int src, int dest);
+        void Delete_Node(int node);
+        size_t Get_Node_InDegree(int node);
 
         // Print Adjacency List
         friend ostream &operator<<(ostream &out, const Graph &graph);

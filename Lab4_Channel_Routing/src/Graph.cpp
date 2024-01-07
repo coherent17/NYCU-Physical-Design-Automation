@@ -20,12 +20,15 @@ void Graph::Add_Edge(int src, int dest){
     Adjacency_List[src].insert(dest);
 }
 
-void Graph::Delete_Edge(int src, int dest){
-    auto it = Adjacency_List.find(src);
-    assert(it != Adjacency_List.end() && "Key not found");
-    auto neighborIt = it->second.find(dest);
-    assert(neighborIt != it->second.end() && "Dest pin not found");
-    it->second.erase(neighborIt);
+void Graph::Delete_Node(int node){
+    for (auto& pair : Adjacency_List) {
+        pair.second.erase(node);
+    }
+    Adjacency_List.erase(node);
+}
+
+size_t Graph::Get_Node_InDegree(int node){
+    return Adjacency_List[node].size();
 }
 
 // Print Adjacency List

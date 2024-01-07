@@ -95,7 +95,8 @@ void Channel_Router::Parser(ifstream &fin){
     Vertical_Constraint_Graph.Init_Graph(Max_Pin_Number);
     for(size_t i = 0; i < Top_Boundary.size(); i++){
         if(Top_Boundary[i] != 0 && Bottom_Boundary[i] != 0){
-            Vertical_Constraint_Graph.Add_Edge(Top_Boundary[i], Bottom_Boundary[i]);
+            // indegree = Vertical_Constraint_Graph[pin_number].size()
+            Vertical_Constraint_Graph.Add_Edge(Bottom_Boundary[i], Top_Boundary[i]);
         }
     }
 
@@ -103,6 +104,42 @@ void Channel_Router::Parser(ifstream &fin){
 }
 
 void Channel_Router::Dump(ofstream &fout){
-
+    fout << "Channel density: " << Routing_Track.size() << endl;
+    for(int i = 1; i <= Max_Pin_Number; i++){
+        fout << "Net " << i << endl;
+        for(size_t j = 0; j < Routing_Track.size(); j++){
+            auto it = Routing_Track[j].find(i);
+            if(it != Routing_Track[j].end()){
+                fout << "C" << Routing_Track.size() - j << " " << Intervals[i].first - 1 << " " << Intervals[i].second - 1 << endl;
+                break;
+            }
+        }
+    }
     fout.close();
+}
+
+void Channel_Router::Run(){
+    while(!Sorted_Intervals.empty()){
+        int watermark = 0;
+        set<int> Current_Track;
+        Current_Track.clear();
+        for(auto it = Sorted_Intervals.begin(); it != Sorted_Intervals.end();){
+            int pin_number = it->first;
+            int pin_start = it->second.first;
+            int pin_end = it->second.second;
+
+            if(pin_start >= watermark && Vertical_Constraint_Graph.Get_Node_InDegree(pin_number) == 0){
+                watermark = pin_end;
+                Current_Track.insert(pin_number);
+                it = Sorted_Intervals.erase(it);
+            }
+            else{
+                ++it;
+            }
+        }
+        Routing_Track.emplace_back(Current_Track);
+        for(const auto &pin : Current_Track){
+            Vertical_Constraint_Graph.Delete_Node(pin);
+        }
+    }
 }

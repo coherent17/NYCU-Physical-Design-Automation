@@ -8,5 +8,6 @@ int main(int argc, char *argv[]){
     Channel_Router channel_router;
     channel_router.Parser(input);
     channel_router.Run();
+    channel_router.Dump(output);
     return 0;
 }

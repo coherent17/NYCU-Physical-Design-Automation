@@ -15,6 +15,7 @@ class Channel_Router{
         unordered_map<int, pair<int, int>> Intervals;
         vector<pair<int, pair<int, int>>> Sorted_Intervals;
         Graph Vertical_Constraint_Graph;
+        vector<set<int>> Routing_Track;
 
     public:
         // Constructor & Destructor
