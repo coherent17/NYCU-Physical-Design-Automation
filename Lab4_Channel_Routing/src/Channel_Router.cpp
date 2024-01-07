@@ -82,21 +82,24 @@ void Channel_Router::Parser(ifstream &fin){
         }
     };
 
-    vector<pair<int, pair<int, int>>> intervals_vec;
     for(const auto &pair : Intervals){
-        intervals_vec.emplace_back(pair);
+        Sorted_Intervals.emplace_back(pair);
     }
-    
-    sort(intervals_vec.begin(), intervals_vec.end(), interval_cmp);
+    sort(Sorted_Intervals.begin(), Sorted_Intervals.end(), interval_cmp);
 
-    for(const auto &pair : intervals_vec){
-        cout << pair.first << ": " << pair.second.first << " " << pair.second.second << endl;
-        Sorted_Intervals[pair.first] = pair.second;
+    for(const auto &pair : Sorted_Intervals){
+        cout << "I" << pair.first << ": " << pair.second.first << " " << pair.second.second << endl;
     }
 
-    // for(int i = 1; i <= Max_Pin_Number; i++){
-    //     cout << i << ": " << Sorted_Intervals[i].first << " " << Sorted_Intervals[i].second << endl;
-    // }
+    // Build the VCG
+    Vertical_Constraint_Graph.Init_Graph(Max_Pin_Number);
+    for(size_t i = 0; i < Top_Boundary.size(); i++){
+        if(Top_Boundary[i] != 0 && Bottom_Boundary[i] != 0){
+            Vertical_Constraint_Graph.Add_Edge(Top_Boundary[i], Bottom_Boundary[i]);
+        }
+    }
+
+    cout << Vertical_Constraint_Graph << endl;
 }
 
 void Channel_Router::Dump(ofstream &fout){

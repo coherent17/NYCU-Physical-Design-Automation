@@ -7,5 +7,6 @@ int main(int argc, char *argv[]){
     ofstream output(argv[2]);
     Channel_Router channel_router;
     channel_router.Parser(input);
+    channel_router.Run();
     return 0;
 }

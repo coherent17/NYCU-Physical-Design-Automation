@@ -2,6 +2,7 @@
 #define _CHANNEL_ROUTER_H_
 
 #include <bits/stdc++.h>
+#include "Graph.h"
 #include "Util.h"
 using namespace std;
 
@@ -12,12 +13,16 @@ class Channel_Router{
         vector<int> Bottom_Boundary;
         vector<pair<int, int>> Boundary;
         unordered_map<int, pair<int, int>> Intervals;
-        unordered_map<int, pair<int, int>> Sorted_Intervals;
+        vector<pair<int, pair<int, int>>> Sorted_Intervals;
+        Graph Vertical_Constraint_Graph;
 
     public:
         // Constructor & Destructor
         Channel_Router();
         ~Channel_Router();
+
+        // Main Algorithm
+        void Run();
 
         // I/O
         void Parser(ifstream &fin);
