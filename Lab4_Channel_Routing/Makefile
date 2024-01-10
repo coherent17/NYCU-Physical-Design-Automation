@@ -1,7 +1,7 @@
 # ompiler & Linker settings
 CC = g++
-CFLAGS = -g -Wall -march=native -flto -funroll-loops -finline-functions -ffast-math -std=c++11 -pthread -O3 -I./include
-#CFLAGS = -g -Wall -march=native -flto -funroll-loops -finline-functions -ffast-math -std=c++11 -pthread -O3 -DNDEBUG -I./include
+#CFLAGS = -g -Wall -march=native -flto -funroll-loops -finline-functions -ffast-math -std=c++11 -pthread -O3 -I./include
+CFLAGS = -g -Wall -march=native -flto -funroll-loops -finline-functions -ffast-math -std=c++11 -pthread -O3 -DNDEBUG -I./include
 #CFLAGS = -g -Wall -std=c++11 -pthread -O3 -I./include
 
 # Valgrind for memory issue
