@@ -1,7 +1,7 @@
 #include "Channel_Router.h"
 
 // Constructor & Destructor
-Channel_Router::Channel_Router():Max_Pin_Number(0){
+Channel_Router::Channel_Router():Max_Pin_Number(0), Track_Number(0){
     ;
 }
 
@@ -36,7 +36,6 @@ void Channel_Router::Parser(ifstream &fin){
     // Calculate the interval
     assert(Top_Boundary.size() == Bottom_Boundary.size());
     size_t vertical_tracks = Top_Boundary.size();
-    cout << vertical_tracks << endl;
 
     for(size_t i = 0; i < vertical_tracks; i++){
         int current_top_pin = Top_Boundary[i];
@@ -87,39 +86,28 @@ void Channel_Router::Parser(ifstream &fin){
     }
     sort(Sorted_Intervals.begin(), Sorted_Intervals.end(), interval_cmp);
 
-    for(const auto &pair : Sorted_Intervals){
-        cout << "I" << pair.first << ": " << pair.second.first << " " << pair.second.second << endl;
-    }
-
     // Build the VCG
     Vertical_Constraint_Graph.Init_Graph(Max_Pin_Number);
     for(size_t i = 0; i < Top_Boundary.size(); i++){
-        if(Top_Boundary[i] != 0 && Bottom_Boundary[i] != 0){
+        if(Top_Boundary[i] != 0 && Bottom_Boundary[i] != 0 && (Top_Boundary[i] != Bottom_Boundary[i])){
             // indegree = Vertical_Constraint_Graph[pin_number].size()
             Vertical_Constraint_Graph.Add_Edge(Bottom_Boundary[i], Top_Boundary[i]);
         }
     }
-
-    cout << Vertical_Constraint_Graph << endl;
 }
 
 void Channel_Router::Dump(ofstream &fout){
-    fout << "Channel density: " << Routing_Track.size() << endl;
+    fout << "Channel density: " << Track_Number << endl;
     for(int i = 1; i <= Max_Pin_Number; i++){
         fout << "Net " << i << endl;
-        for(size_t j = 0; j < Routing_Track.size(); j++){
-            auto it = Routing_Track[j].find(i);
-            if(it != Routing_Track[j].end()){
-                fout << "C" << Routing_Track.size() - j << " " << Intervals[i].first - 1 << " " << Intervals[i].second - 1 << endl;
-                break;
-            }
-        }
+        fout << "C" << Track_Number - Routing_Track[i] + 1<< " " << Intervals[i].first - 1 << " " << Intervals[i].second - 1 << endl;
     }
     fout.close();
 }
 
 void Channel_Router::Run(){
     while(!Sorted_Intervals.empty()){
+        Track_Number++;
         int watermark = 0;
         set<int> Current_Track;
         Current_Track.clear();
@@ -128,8 +116,9 @@ void Channel_Router::Run(){
             int pin_start = it->second.first;
             int pin_end = it->second.second;
 
-            if(pin_start >= watermark && Vertical_Constraint_Graph.Get_Node_InDegree(pin_number) == 0){
+            if(pin_start > watermark && Vertical_Constraint_Graph.Get_Node_InDegree(pin_number) == 0){
                 watermark = pin_end;
+                Routing_Track[pin_number] = Track_Number;
                 Current_Track.insert(pin_number);
                 it = Sorted_Intervals.erase(it);
             }
@@ -137,7 +126,6 @@ void Channel_Router::Run(){
                 ++it;
             }
         }
-        Routing_Track.emplace_back(Current_Track);
         for(const auto &pin : Current_Track){
             Vertical_Constraint_Graph.Delete_Node(pin);
         }

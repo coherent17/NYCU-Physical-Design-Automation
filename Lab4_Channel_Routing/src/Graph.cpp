@@ -33,6 +33,7 @@ size_t Graph::Get_Node_InDegree(int node){
 
 // Print Adjacency List
 ostream &operator<<(ostream &out, const Graph &graph){
+    out << "############ VCG ##################" << endl;
     for(const auto &pair : graph.Adjacency_List){
         out << pair.first << ": ";
         for(const auto &neighbor : pair.second){
@@ -40,6 +41,6 @@ ostream &operator<<(ostream &out, const Graph &graph){
         }
         out << endl;
     }
-    out << endl;
+    out << "############ VCG ##################" << endl;
     return out;
 }

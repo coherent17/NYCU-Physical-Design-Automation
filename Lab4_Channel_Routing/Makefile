@@ -31,14 +31,32 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 check:
 	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) testcase/case7.sp testcase/s4.rpt
 
-s1:
-	time ./$(TARGET) testcase/sample.in testcase/sample.out
+s:
+	time ./$(TARGET) testcase/sample.txt testcase/sample.out
 
-s2:
-	time ./$(TARGET) testcase/text_sample.in testcase/sample.out
+do1:
+	time ./$(TARGET) testcase/input1.txt testcase/input1.out
 
-s3:
-	time ./$(TARGET) testcase/test5.in testcase/sample.out
+do2:
+	time ./$(TARGET) testcase/input2.txt testcase/input2.out
+
+do3:
+	time ./$(TARGET) testcase/input3.txt testcase/input3.out
+
+do4:
+	time ./$(TARGET) testcase/input4.txt testcase/input4.out
+
+do5:
+	time ./$(TARGET) testcase/input5.txt testcase/input5.out
+
+do6:
+	time ./$(TARGET) testcase/input6.txt testcase/input6.out
+
+do7:
+	time ./$(TARGET) testcase/input7.txt testcase/input7.out
+
+do8:
+	time ./$(TARGET) testcase/input8.txt testcase/input8.out
 
 clean:
 	rm -rf $(OBJDIR) $(TARGET) testcase/*.out
