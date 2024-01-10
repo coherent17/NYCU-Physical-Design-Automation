@@ -58,5 +58,11 @@ do7:
 do8:
 	time ./$(TARGET) testcase/input8.txt testcase/input8.out
 
+do9:
+	time ./$(TARGET) testcase/input9.txt testcase/input9.out
+
+do10:
+	time ./$(TARGET) testcase/input10.txt testcase/input10.out
+
 clean:
 	rm -rf $(OBJDIR) $(TARGET) testcase/*.out
